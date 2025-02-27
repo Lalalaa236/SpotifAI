@@ -43,6 +43,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users',
+    'songs',
+    'playlists',
+    'subscriptions',
+    'chathistory',
+    'chatbot',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -138,5 +145,3 @@ CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'  # Set to 'Strict' in production
-
-# AUTH_USER_MODEL = 'account.Account'
