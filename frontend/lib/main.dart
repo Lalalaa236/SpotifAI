@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'github_oauth_credentials.dart';
-import 'src/github_login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,33 +10,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'GitHub Client',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'GitHub Client'),
+      title: 'SpotifAI',
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GithubLoginWidget(
-      builder: (context, httpClient) {
-        return Scaffold(
-          appBar: AppBar(title: Text(title), elevation: 2),
-          body: const Center(child: Text('You are logged in to GitHub!')),
-        );
-      },
-      githubClientId: githubClientId,
-      githubClientSecret: githubClientSecret,
-      githubScopes: githubScopes,
+    return Scaffold(
+      appBar: AppBar(title: const Text('SpotifAI')),
+      body: const Center(child: Text('This is the home page')),
     );
   }
 }
