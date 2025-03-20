@@ -10,7 +10,7 @@ void main() {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     setWindowTitle('Spotify Login');
     // Set fixed window size: both min and max are set to the same value
-    const Size fixedSize = Size(1600, 950);
+    const Size fixedSize = Size(1600, 920);
     setWindowMinSize(fixedSize);
     setWindowMaxSize(fixedSize);
   }

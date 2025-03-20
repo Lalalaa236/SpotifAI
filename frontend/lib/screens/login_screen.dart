@@ -18,6 +18,7 @@ class LoginScreen extends StatelessWidget {
               Color(0xFF65D36E), // green (#65D36E)
               Colors.black,
             ],
+            stops: [0, 0.7],
           ),
         ),
         child: Center(
