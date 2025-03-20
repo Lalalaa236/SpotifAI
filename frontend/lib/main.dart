@@ -1,7 +1,20 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:window_size/window_size.dart';
 import 'screens/login_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Only run window size configuration on desktop platforms
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    setWindowTitle('Spotify Login');
+    // Set fixed window size: both min and max are set to the same value
+    const Size fixedSize = Size(1600, 950);
+    setWindowMinSize(fixedSize);
+    setWindowMaxSize(fixedSize);
+  }
+
   runApp(const MyApp());
 }
 
