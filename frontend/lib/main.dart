@@ -8,11 +8,25 @@ void main() {
 
   // Only run window size configuration on desktop platforms
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    setWindowTitle('Spotify Login');
-    // Set fixed window size: both min and max are set to the same value
-    const Size fixedSize = Size(1600, 920);
-    setWindowMinSize(fixedSize);
-    setWindowMaxSize(fixedSize);
+    setWindowTitle('SpotifAI');
+
+    // Get screen size
+    getCurrentScreen().then((screen) {
+      if (screen != null) {
+        final screenSize = screen.visibleFrame;
+        final width = screenSize.width;
+        final height = screenSize.height;
+
+        setWindowFrame(
+          Rect.fromCenter(
+            center: Offset(screenSize.width / 2, screenSize.height / 2),
+            width: width,
+            height: height,
+          ),
+        );
+        setWindowMinSize(const Size(1200, 600));
+      }
+    });
   }
 
   runApp(const MyApp());

@@ -16,10 +16,10 @@ class AppConstants {
   // Custom Button constants
   static const double buttonWidth = 350.0;
   static const double buttonHeight = 50.0;
-  
+
   // TextField constants
   static const double textFieldWidth = 350.0;
-  
+
   // Shared Preferences Keys
   static const String userTokenKey = 'USER_TOKEN';
 }
