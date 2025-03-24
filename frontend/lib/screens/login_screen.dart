@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../components/social_login_button.dart';
 import '../components/custom_text_field.dart';
 import '../components/custom_button.dart';
+import '../services/google_auth_service.dart';
+import '../services/facebook_auth_service.dart';
+import '../services/apple_auth_service.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -53,20 +56,23 @@ class LoginScreen extends StatelessWidget {
                     SocialLoginButton(
                       icon: Icons.g_mobiledata,
                       text: 'Continue with Google',
-                      onPressed: () {},
-                      // onPressed: google_service.handleGoogleSignIn,
+                      onPressed: () async {
+                        await GoogleAuthService.signIn();
+                      },
                     ),
                     SocialLoginButton(
                       icon: Icons.facebook,
                       text: 'Continue with Facebook',
-                      onPressed: () {},
-                      // onPressed: facebook_service.handleFacebookSignIn,
+                      onPressed: () async {
+                        await FacebookAuthService.signIn();
+                      },
                     ),
                     SocialLoginButton(
                       icon: Icons.apple,
                       text: 'Continue with Apple',
-                      onPressed: () {},
-                      // onPressed: apple_service.handleAppleSignIn,
+                      onPressed: () async {
+                        await AppleAuthService.signIn();
+                      },
                     ),
                     const SizedBox(height: 20),
                     Padding(
