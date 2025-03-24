@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import '../components/social_login_button.dart';
+import '../components/custom_text_field.dart';
+import '../components/custom_button.dart';
+import '../services/google_auth_service.dart';
+import '../services/facebook_auth_service.dart';
+import '../services/apple_auth_service.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -12,127 +17,122 @@ class LoginScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
+            colors: [Color(0x89000000), Color(0xDD000000)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF65D36E), // green (#65D36E)
-              Colors.black,
-            ],
-            stops: [0, 0.7],
           ),
         ),
         child: Center(
           child: Container(
-            width: halfWidth,
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SvgPicture.asset(
-                  'assets/svg/spotify.svg', // update path as needed
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
-                    BlendMode.srcIn,
-                  ),
-                  height: 50,
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Log in to SpotifAI',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _buildSocialLoginButton(
-                  SvgPicture.asset('assets/svg/google.svg', height: 25),
-                  'Continue with Google',
-                ),
-                _buildSocialLoginButton(
-                  SvgPicture.asset('assets/svg/facebook.svg', height: 25),
-                  'Continue with Facebook',
-                ),
-                _buildSocialLoginButton(
-                  SvgPicture.asset(
-                    'assets/svg/apple.svg',
-                    colorFilter: ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
+            width: 734,
+            height: 830,
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF000000), Color(0xFF1E1E1E)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(
+                context,
+              ).copyWith(scrollbars: false),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Image.asset('assets/images/spotify_logo.png', height: 50),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Log in to Spotify',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    height: 25,
-                  ),
-                  'Continue with Apple',
-                ),
-                const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Email or username',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                    const SizedBox(height: 20),
+                    SocialLoginButton(
+                      icon: Icons.g_mobiledata,
+                      text: 'Continue with Google',
+                      onPressed: () async {
+                        await GoogleAuthService.signIn();
+                      },
+                    ),
+                    SocialLoginButton(
+                      icon: Icons.facebook,
+                      text: 'Continue with Facebook',
+                      onPressed: () async {
+                        await FacebookAuthService.signIn();
+                      },
+                    ),
+                    SocialLoginButton(
+                      icon: Icons.apple,
+                      text: 'Continue with Apple',
+                      onPressed: () async {
+                        await AppleAuthService.signIn();
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Container(
+                        width: 550,
+                        height: 1,
+                        color: Colors.white24,
                       ),
-                      const SizedBox(height: 5),
-                      _buildTextField('Email or username'),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Password',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                      const SizedBox(height: 5),
-                      _buildTextField('Password', isPassword: true),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                    ),
+                    const CustomTextField(
+                      labelText: 'Email or username',
+                      hintText: 'Email or username',
+                    ),
+                    const CustomTextField(
+                      labelText: 'Password',
+                      hintText: 'Password',
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 10),
+                    CustomButton(text: 'Log In', onPressed: () {}),
+                    const SizedBox(height: 10),
+                    Center(
+                      child: RichText(
+                        text: const TextSpan(
+                          text: 'Forgot your password?',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
                           ),
-                          minimumSize: const Size(double.infinity, 50),
-                        ),
-                        child: const Text(
-                          'Log In',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Center(
-                        child: TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            'Forgot your password?',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: RichText(
-                          text: TextSpan(
-                            text: "Don't have an account? ",
-                            style: const TextStyle(color: Colors.white70),
-                            children: [
-                              TextSpan(
-                                text: 'Sign up for Spotify',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                    ),
+                    const SizedBox(height: 20),
+                    Center(
+                      child: RichText(
+                        text: const TextSpan(
+                          text: "Don't have an account? ",
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                          children: [
+                            TextSpan(
+                              text: 'Sign up for Spotify',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                decoration: TextDecoration.underline,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -157,16 +157,12 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSocialLoginButton(Widget icon, String text) {
+  Widget _buildSocialLoginButton(IconData icon, String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 5),
       child: OutlinedButton.icon(
         onPressed: () {},
-        icon: Container(
-          width: 30, // Fixed width to align all icons
-          alignment: Alignment.centerLeft,
-          child: icon,
-        ),
+        icon: Icon(icon, color: Colors.white),
         label: Text(text, style: const TextStyle(color: Colors.white)),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Colors.white70),
