@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_constants.dart';
 
 class SocialLoginButton extends StatelessWidget {
-  final IconData icon;
+  final Widget icon;
   final String text;
   final VoidCallback onPressed;
   final double width;
@@ -28,17 +28,23 @@ class SocialLoginButton extends StatelessWidget {
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: Colors.white70),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
             padding: EdgeInsets.zero,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
             children: [
-              Icon(icon, color: Colors.white),
-              SizedBox(width: AppConstants.spaceIconAndText),
-              Text(
-                text,
-                style: const TextStyle(color: Colors.white),
+              // Left-aligned icon
+              Positioned(
+                left: width * 0.1,
+                top: 0,
+                bottom: 0,
+                child: Center(child: icon),
+              ),
+              // Centered text
+              Center(
+                child: Text(text, style: const TextStyle(color: Colors.white)),
               ),
             ],
           ),
