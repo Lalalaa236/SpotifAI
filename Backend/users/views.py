@@ -1,8 +1,9 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import logout
+from django.contrib.auth.models import User
 from .models import User
 from .serializers import UserSerializer
 from playlists.models import Playlist
@@ -11,6 +12,17 @@ from subscriptions.models import Subscription
 from subscriptions.serializers import SubscriptionSerializer
 from chathistory.models import ChatHistory
 from chathistory.serializers import ChatHistorySerializer
+
+from django.shortcuts import render
+from django.contrib.auth.models import User
+from rest_framework import generics
+from .serializers import UserSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
+class CreateUserView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -42,6 +54,14 @@ class UserViewSet(viewsets.ModelViewSet):
                 "status": "failed",
                 "message": "User not found"
             }, status=status.HTTP_404_NOT_FOUND)
+        
+    @action(detail=False, methods=['post'])
+    def logout_view(request):
+        logout(request)
+        return Response({
+            "status": "success",
+            "message": "Logged out successfully"
+        })
 
     @action(detail=True, methods=['put'])
     def change_password(self, request, pk=None):
@@ -119,4 +139,33 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({
             "status": "success",
             "data": serializer.data
+        })
+
+    @action(detail=False, methods=['post'])
+    def social_login(self, request):
+        provider = request.data.get('provider')
+        provider_user_id = request.data.get('provider_user_id')
+        email = request.data.get('email')
+        access_token = request.data.get('access_token')
+
+        if not provider or not provider_user_id or not email:
+            return Response({
+                "status": "failed",
+                "message": "Missing required fields"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        user, created = User.objects.get_or_create(username=provider_user_id, defaults={
+            'email': email,
+            'password': make_password(access_token)
+        })
+
+        if not created:
+            user.password = make_password(access_token)
+            user.save()
+
+        return Response({
+            "status": "success",
+            "message": "User logged in successfully",
+            "user_id": user.id,
+            "email": user.email
         })

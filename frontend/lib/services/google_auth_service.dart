@@ -3,6 +3,7 @@ import 'package:oauth2/oauth2.dart' as oauth2;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../apis/auth_api.dart';
 
 class GoogleAuthService {
   static const String clientId = '770205980-tnleuf11rikr01sd9mq9dm2a128n7k70.apps.googleusercontent.com';
@@ -44,23 +45,25 @@ class GoogleAuthService {
 
       final client = await grant.handleAuthorizationResponse(queryParams);
 
-      // Send data to the backend
-      final response = await http.post(
-        Uri.parse('http://localhost:8000/api/social-login/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'provider': 'google',
-          'provider_user_id': client.credentials.accessToken, // Replace with actual user ID from Google
-          'email': 'user_email@example.com', // Replace with actual email from Google
-          'access_token': client.credentials.accessToken,
-          'refresh_token': client.credentials.refreshToken,
-        }),
+      final userInfoResponse = await http.get(
+        Uri.parse('https://www.googleapis.com/oauth2/v1/userinfo?alt=json'),
+        headers: {'Authorization': 'Bearer ${client.credentials.accessToken}'},
       );
 
-      if (response.statusCode == 200) {
-        print('User logged in successfully: ${response.body}');
+      if (userInfoResponse.statusCode == 200) {
+        final userInfo = json.decode(userInfoResponse.body);
+        final email = userInfo['email'];
+        final providerUserId = userInfo['id'];
+
+        // Send data to the backend
+        await AuthAPI.socialLogin(
+          provider: 'google',
+          providerUserId: providerUserId,
+          email: email,
+          accessToken: client.credentials.accessToken,
+        );
       } else {
-        print('Error during login: ${response.body}');
+        print('Failed to fetch user info: ${userInfoResponse.body}');
       }
 
       return client;
