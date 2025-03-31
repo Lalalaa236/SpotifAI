@@ -9,4 +9,7 @@ django-allauth
 djangorestframework-simplejwt
 django-cors-headers
 requests
-jwt
+PyJWT
+pytz
+google-auth 
+google-auth-oauthlib

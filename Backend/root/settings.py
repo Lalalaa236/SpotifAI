@@ -67,6 +67,9 @@ INSTALLED_APPS = [
     'users',
     'songs',
     'playlists',
+    'albums',
+    'artists',
+    'genres',
     'subscriptions',
     'chathistory',
     'chatbot',
@@ -190,3 +193,5 @@ LOGOUT_REDIRECT_URL = '/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+AUTH_USER_MODEL = 'users.User'
