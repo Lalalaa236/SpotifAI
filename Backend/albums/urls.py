@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import AlbumViewSet
 
 router = DefaultRouter()
-router.register(r'artists', AlbumViewSet)
+router.register(r'albums', AlbumViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

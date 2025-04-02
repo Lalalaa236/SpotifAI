@@ -199,4 +199,4 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'  # Set to 'Strict' in production
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
-LOGIN_REDIRECT_URL = '/api/v1/accounts/success/'
+LOGIN_REDIRECT_URL = '/api/v1/users/success/'
