@@ -43,13 +43,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'users',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
     'django.contrib.sites',
+    'rest_framework',
+    'users',
+    'artists',
+    'albums',
+    'songs',
+    'playlists',
 ]
 
 SITE_ID = 2  # Make sure this is set
