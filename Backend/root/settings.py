@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.github',
     'django.contrib.sites',
     'rest_framework',
+    'drf_yasg',
     'users',
     'artists',
     'albums',
