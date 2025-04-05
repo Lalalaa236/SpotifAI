@@ -48,9 +48,6 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icon/icon.png
-    - assets/images/background.png
-    - assets/svg/spotify.svg
-    - assets/svg/google.svg
-    - assets/svg/facebook.svg
-    - assets/svg/apple.svg
+    - assets/icon
+    - assets/images
+    - assets/svg

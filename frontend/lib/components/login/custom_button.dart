@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/app_constants.dart';
+import '../../utils/app_constants.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -36,13 +36,7 @@ class CustomButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(30),
             ),
           ),
-          child: Text(
-            text,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 16,
-            ),
-          ),
+          child: Text(text, style: TextStyle(color: textColor, fontSize: 16)),
         ),
       ),
     );

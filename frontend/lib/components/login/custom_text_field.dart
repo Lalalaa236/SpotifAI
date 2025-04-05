@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/app_constants.dart';
+import '../../utils/app_constants.dart';
 
 class CustomTextField extends StatelessWidget {
   final String labelText;
@@ -9,7 +9,7 @@ class CustomTextField extends StatelessWidget {
   final double width;
   final EdgeInsetsGeometry? padding;
   final Function(String)? onChanged;
-  
+
   const CustomTextField({
     super.key,
     required this.labelText,
@@ -30,7 +30,11 @@ class CustomTextField extends StatelessWidget {
         children: [
           Text(
             labelText,
-            style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 5),
           SizedBox(

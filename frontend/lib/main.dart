@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_size/window_size.dart';
-import 'screens/login_screen.dart';
+import 'screens/login_flow/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
