@@ -5,35 +5,41 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class GoogleAuthService {
-  static const String clientId = '770205980-tnleuf11rikr01sd9mq9dm2a128n7k70.apps.googleusercontent.com';
-  static const String clientSecret = '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';
-  static final Uri authorizationEndpoint = Uri.parse('https://accounts.google.com/o/oauth2/auth');
-  static final Uri tokenEndpoint = Uri.parse('https://oauth2.googleapis.com/token');
-  static final List<String> scopes = ['email', 'profile'];
+  static final Uri backendAuthUrl = Uri.parse('http://localhost:8000/api/auth/google/url/');
+  static final Uri backendTokenUrl = Uri.parse('http://localhost:8000/api/auth/google/callback/');
 
-  static Future<oauth2.Client?> signIn() async {
+  static Future<bool> signIn() async {
     HttpServer? redirectServer;
 
     try {
       // Bind to an ephemeral port
       redirectServer = await HttpServer.bind('localhost', 0);
-
       final redirectUrl = Uri.parse('http://localhost:${redirectServer.port}/auth');
-      final grant = oauth2.AuthorizationCodeGrant(
-        clientId,
-        authorizationEndpoint,
-        tokenEndpoint,
-        secret: clientSecret,
+      
+      // Get authorization URL from backend
+      final urlResponse = await http.post(
+        backendAuthUrl,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'redirect_uri': redirectUrl.toString(),
+        }),
       );
-
-      final authorizationUrl = grant.getAuthorizationUrl(redirectUrl, scopes: scopes);
-
+      
+      if (urlResponse.statusCode != 200) {
+        throw Exception('Failed to get authorization URL: ${urlResponse.body}');
+      }
+      
+      final Map<String, dynamic> urlData = jsonDecode(urlResponse.body);
+      final Uri authorizationUrl = Uri.parse(urlData['authorization_url']);
+      
+      // Launch the authorization URL
       if (await canLaunchUrl(authorizationUrl)) {
         await launchUrl(authorizationUrl);
       } else {
         throw Exception('Could not launch $authorizationUrl');
       }
 
+      // Wait for the callback
       final request = await redirectServer.first;
       final queryParams = request.uri.queryParameters;
       request.response
@@ -42,38 +48,40 @@ class GoogleAuthService {
         ..writeln('Authentication successful! You can close this tab.')
         ..close();
 
-      final client = await grant.handleAuthorizationResponse(queryParams);
-
-      // Send data to the backend
+      // Send the code to backend to complete authentication
       final response = await http.post(
-        Uri.parse('http://localhost:8000/api/social-login/'),
+        backendTokenUrl,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'provider': 'google',
-          'provider_user_id': client.credentials.accessToken, // Replace with actual user ID from Google
-          'email': 'user_email@example.com', // Replace with actual email from Google
-          'access_token': client.credentials.accessToken,
-          'refresh_token': client.credentials.refreshToken,
+          'code': queryParams['code'],
+          'redirect_uri': redirectUrl.toString(),
         }),
       );
 
       if (response.statusCode == 200) {
-        print('User logged in successfully: ${response.body}');
+        final responseData = jsonDecode(response.body);
+        print('User logged in successfully');
+        // Store user token securely here
+        return true;
       } else {
         print('Error during login: ${response.body}');
+        return false;
       }
-
-      return client;
     } catch (e) {
       print('Error during Google sign-in: $e');
-      return null;
+      return false;
     } finally {
       await redirectServer?.close();
     }
   }
 
-  static Future<void> logout(oauth2.Client client) async {
-    client.close();
-    print('Logged out from Google');
+  static Future<void> logout() async {
+    // Call your backend logout endpoint
+    try {
+      await http.post(Uri.parse('http://localhost:8000/api/auth/logout/'));
+      print('Logged out from Google');
+    } catch (e) {
+      print('Error during logout: $e');
+    }
   }
 }

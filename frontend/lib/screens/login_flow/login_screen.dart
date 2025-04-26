@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Widget import
 import '../../components/login/social_login_button.dart';
@@ -21,10 +22,49 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   var selectedTab = 0;
+  bool isLoading = false;
+  
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   void switchTab(tab) => setState(() {
     selectedTab = tab;
   });
+  
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      isLoading = true;
+    });
+    
+    try {
+      final Uri googleAuthUrl = Uri.parse('http://127.0.0.1:8000/api/v1/accounts/google/login/');
+      
+      if (await canLaunchUrl(googleAuthUrl)) {
+        await launchUrl(
+          googleAuthUrl,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        _showErrorSnackBar('Could not launch Google authentication');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error: ${e.toString()}');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+  
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +72,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
     switch (selectedTab) {
       case 0:
-        page = LogInWidget(selectedTab: selectedTab, onSwitchTab: switchTab);
+        page = LogInWidget(
+          selectedTab: selectedTab, 
+          onSwitchTab: switchTab,
+          onGoogleLogin: _handleGoogleLogin,
+          emailController: emailController,
+          passwordController: passwordController,
+        );
         break;
       case 1:
         page = SignUpWidget(selectedTab: selectedTab, onSwitchTab: switchTab);
@@ -66,7 +112,11 @@ class _LoginScreenState extends State<LoginScreen> {
               height: double.infinity,
             ),
           ),
-          page,
+          
+          // Main content
+          isLoading 
+              ? const Center(child: CircularProgressIndicator(color: Colors.white))
+              : page,
         ],
       ),
     );
@@ -74,13 +124,19 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class LogInWidget extends StatelessWidget {
-  final selectedTab;
+  final int selectedTab;
   final Function(int) onSwitchTab;
+  final Function() onGoogleLogin;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
 
   const LogInWidget({
     super.key,
     required this.selectedTab,
     required this.onSwitchTab,
+    required this.onGoogleLogin,
+    required this.emailController,
+    required this.passwordController,
   });
 
   @override
@@ -143,17 +199,24 @@ class LogInWidget extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 10),
-                        const CustomTextField(
+                        CustomTextField(
+                          controller: emailController,
                           labelText: 'Email or username',
                           hintText: 'Email or username',
                         ),
-                        const CustomTextField(
+                        CustomTextField(
+                          controller: passwordController,
                           labelText: 'Password',
                           hintText: 'Password',
                           obscureText: true,
                         ),
                         const SizedBox(height: 10),
-                        CustomButton(text: 'Log In', onPressed: () {}),
+                        CustomButton(
+                          text: 'Log In',
+                          onPressed: () {
+                            // Handle regular login
+                          },
+                        ),
                         const SizedBox(height: 10),
                         Center(
                           child: RichText(
@@ -200,9 +263,7 @@ class LogInWidget extends StatelessWidget {
                             width: 25,
                           ),
                           text: 'Continue with Google',
-                          onPressed: () async {
-                            await GoogleAuthService.signIn();
-                          },
+                          onPressed: onGoogleLogin,
                         ),
                         SocialLoginButton(
                           icon: SvgPicture.asset(
@@ -268,7 +329,7 @@ class LogInWidget extends StatelessWidget {
 }
 
 class SignUpWidget extends StatelessWidget {
-  final selectedTab;
+  final int selectedTab;
   final Function(int) onSwitchTab;
 
   const SignUpWidget({
@@ -345,7 +406,7 @@ class SignUpWidget extends StatelessWidget {
                     text: 'Already have account? ',
                     style: TextStyle(color: Colors.white70),
                     children: [
-                      const TextSpan(
+                      TextSpan(
                         text: 'Log in',
                         style: TextStyle(
                           color: Colors.white,

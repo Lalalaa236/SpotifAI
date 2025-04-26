@@ -22,6 +22,8 @@ dependencies:
   url_launcher: ^6.3.1
   flutter_svg: ^2.0.17
   window_size: ^0.1.0
+  flutter_dotenv: ^5.2.1
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +50,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icon
-    - assets/images
-    - assets/svg
+    - assets/icon/
+    - assets/images/
+    - assets/svg/
+    - ../.env
