@@ -4,15 +4,15 @@ import 'package:window_size/window_size.dart';
 import 'screens/login_flow/login_screen.dart';
 import 'screens/login_flow/auth_callback.dart';
 import 'screens/main_flow/home_screen.dart';
+import 'apis/dio_client.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  DioClient.init();
 
-  // Only run window size configuration on desktop platforms
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     setWindowTitle('SpotifAI');
-
-    // Get screen size
     getCurrentScreen().then((screen) {
       if (screen != null) {
         final screenSize = screen.visibleFrame;

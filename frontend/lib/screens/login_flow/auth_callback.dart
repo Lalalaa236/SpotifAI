@@ -20,10 +20,6 @@ class _AuthCallbackScreenState extends State<AuthCallbackScreen> {
 
   Future<void> _processAuth() async {
     try {
-      // In a real implementation, you would extract token from URL parameters
-      // or handle it through deeplinks
-      
-      // For now, we'll just navigate back to home after a delay to simulate
       Future.delayed(const Duration(seconds: 2), () {
         Navigator.of(context).pushReplacementNamed('/home');
       });
