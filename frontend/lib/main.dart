@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:window_size/window_size.dart';
 import 'screens/login_flow/login_screen.dart';
-import 'screens/login_flow/auth_callback.dart';
 import 'screens/main_flow/home_screen.dart';
 import 'apis/dio_client.dart';
 
@@ -50,7 +49,6 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
-        '/auth_callback': (context) => const AuthCallbackScreen(),
         '/home': (context) => const HomeScreen(),
       },
     );
