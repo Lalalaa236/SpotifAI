@@ -74,30 +74,25 @@ class DioClient {
     );
   }
 
-  static Future<Map<String, String>> getCsrfTokenAndCookies() async {
-    try {
-      final response = await _dio!.get('/v1/accounts/login/');
-      final cookies = response.headers['set-cookie'];
-      String? csrfToken;
+  static Map<String, String> getCsrfTokenAndCookies(Response response) {
+    final cookies = response.headers['set-cookie'];
+    String? csrfToken;
 
-      if (cookies != null) {
-        for (var cookie in cookies) {
-          if (cookie.startsWith('csrftoken=')) {
-            csrfToken = cookie.split(';').first.split('=').last;
-          }
+    if (cookies != null) {
+      for (var cookie in cookies) {
+        if (cookie.startsWith('csrftoken=')) {
+          csrfToken = cookie.split(';').first.split('=').last;
         }
       }
-
-      if (csrfToken == null) {
-        throw Exception('CSRF token not found');
-      }
-
-      return {
-        'csrfToken': csrfToken,
-        'cookies': cookies != null ? cookies.join('; ') : '',
-      };
-    } catch (e) {
-      throw Exception('Failed to fetch CSRF token and cookies: $e');
     }
+
+    if (csrfToken == null) {
+      throw Exception('CSRF token not found');
+    }
+
+    return {
+      'csrfToken': csrfToken,
+      'cookies': cookies != null ? cookies.join('; ') : '',
+    };
   }
 }

@@ -64,8 +64,9 @@ class AuthApi extends BaseApi {
 
   static Future<bool> login(String email, String password) async {
     try {
-      // Fetch CSRF token and cookies
-      final csrfData = await DioClient.getCsrfTokenAndCookies();
+      // Fetch the login page to get the CSRF token and cookies
+      final response = await DioClient.instance.get('/v1/accounts/login/');
+      final csrfData = DioClient.getCsrfTokenAndCookies(response);
       final csrfToken = csrfData['csrfToken']!;
       final cookies = csrfData['cookies']!;
 
@@ -74,7 +75,7 @@ class AuthApi extends BaseApi {
       DioClient.instance.options.headers['Cookie'] = cookies;
 
       // Send login request
-      final response = await DioClient.instance.post(
+      final loginResponse = await DioClient.instance.post(
         '/v1/accounts/login/',
         data: 'login=$email&password=$password',
         options: Options(
@@ -82,7 +83,7 @@ class AuthApi extends BaseApi {
         ),
       );
 
-      if (response.statusCode == 200) {
+      if (loginResponse.statusCode == 200) {
         return true;
       } else {
         return false;
