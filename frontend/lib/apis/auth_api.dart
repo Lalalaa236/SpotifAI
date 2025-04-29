@@ -1,5 +1,7 @@
 import 'base_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
+import 'dio_client.dart';
 
 class AuthApi extends BaseApi {
   static const String GOOGLE_AUTH_URL = '/auth/google/url/';
@@ -57,6 +59,36 @@ class AuthApi extends BaseApi {
     } 
     catch (e) {
       throw Exception('Failed to logout: $e');
+    }
+  }
+
+  static Future<bool> login(String email, String password) async {
+    try {
+      // Fetch CSRF token and cookies
+      final csrfData = await DioClient.getCsrfTokenAndCookies();
+      final csrfToken = csrfData['csrfToken']!;
+      final cookies = csrfData['cookies']!;
+
+      // Set CSRF token and cookies in headers
+      DioClient.instance.options.headers['X-CSRFToken'] = csrfToken;
+      DioClient.instance.options.headers['Cookie'] = cookies;
+
+      // Send login request
+      final response = await DioClient.instance.post(
+        '/v1/accounts/login/',
+        data: 'login=$email&password=$password',
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      throw Exception('Login failed: $e');
     }
   }
 }

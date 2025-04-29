@@ -10,6 +10,7 @@ import '../../components/login/custom_button.dart';
 import '../../services/google_auth_service.dart';
 import '../../services/facebook_auth_service.dart';
 import '../../services/apple_auth_service.dart';
+import '../../apis/auth_api.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -64,6 +65,35 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _handleLogin() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorSnackBar('Email and password cannot be empty');
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final success = await AuthApi.login(email, password);
+      if (success) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        _showErrorSnackBar('Invalid email or password');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error: ${e.toString()}');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget page;
@@ -76,6 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
           onGoogleLogin: _handleGoogleLogin,
           emailController: emailController,
           passwordController: passwordController,
+          onLogin: _handleLogin,
+          isLoading: isLoading,
         );
         break;
       case 1:
@@ -127,6 +159,8 @@ class LogInWidget extends StatelessWidget {
   final Function() onGoogleLogin;
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final Function() onLogin;
+  final bool isLoading;
 
   const LogInWidget({
     super.key,
@@ -135,6 +169,8 @@ class LogInWidget extends StatelessWidget {
     required this.onGoogleLogin,
     required this.emailController,
     required this.passwordController,
+    required this.onLogin,
+    required this.isLoading,
   });
 
   @override
@@ -211,9 +247,7 @@ class LogInWidget extends StatelessWidget {
                         const SizedBox(height: 10),
                         CustomButton(
                           text: 'Log In',
-                          onPressed: () {
-                            // Handle regular login
-                          },
+                          onPressed: onLogin,
                         ),
                         const SizedBox(height: 10),
                         Center(
