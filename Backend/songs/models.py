@@ -1,10 +1,14 @@
 from django.db import models
 from albums.models import Album
+from genres.models import Genre
 
 class Song(models.Model):
     title = models.CharField(max_length=255)
     album = models.ForeignKey(Album, on_delete=models.CASCADE, related_name="songs")
-    audio_file = models.FileField(upload_to="songs/")
+    audio_url = models.URLField(null=True, blank=True)
+    cover_image = models.TextField(null=True, blank=True)
+    genres = models.ManyToManyField(Genre, related_name="songs")
+    audio_file = models.FileField(null=True, upload_to="songs/")
 
     def __str__(self):
         return self.title

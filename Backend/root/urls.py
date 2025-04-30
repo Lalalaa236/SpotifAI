@@ -12,6 +12,7 @@ api_v1_patterns = [
     path('', include('albums.urls')),
     path('', include('songs.urls')),
     path('', include('playlists.urls')),
+    path('', include('genres.urls')),
 ]
 
 schema_view = get_schema_view(
