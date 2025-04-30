@@ -1,15 +1,19 @@
-import 'dart:ui';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:ui';
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 
+// Components
 import '../../components/login/social_login_button.dart';
 import '../../components/login/custom_text_field.dart';
 import '../../components/login/custom_button.dart';
 
-import '../../services/google_auth_service.dart';
+// Services
 import '../../services/facebook_auth_service.dart';
 import '../../services/apple_auth_service.dart';
+import '../../apis/auth_api.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,27 +25,26 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   var selectedTab = 0;
   bool isLoading = false;
-  
+
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   void switchTab(tab) => setState(() {
     selectedTab = tab;
   });
-  
+
   Future<void> _handleGoogleLogin() async {
     setState(() {
       isLoading = true;
     });
-    
+
     try {
-      final Uri googleAuthUrl = Uri.parse('http://127.0.0.1:8000/api/v1/accounts/google/login/');
-      
+      final Uri googleAuthUrl = Uri.parse(
+        'http://127.0.0.1:8000/api/v1/accounts/google/login/',
+      );
+
       if (await canLaunchUrl(googleAuthUrl)) {
-        await launchUrl(
-          googleAuthUrl,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(googleAuthUrl, mode: LaunchMode.externalApplication);
       } else {
         _showErrorSnackBar('Could not launch Google authentication');
       }
@@ -53,29 +56,59 @@ class _LoginScreenState extends State<LoginScreen> {
       });
     }
   }
-  
+
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
+  }
+
+  void _handleLogin() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorSnackBar('Email and password cannot be empty');
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final success = await AuthApi.login(email, password);
+      if (success) {
+        context.go('/home');
+      } else {
+        _showErrorSnackBar('Invalid email or password');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error: ${e.toString()}');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     Widget page;
 
     switch (selectedTab) {
       case 0:
         page = LogInWidget(
-          selectedTab: selectedTab, 
+          selectedTab: selectedTab,
           onSwitchTab: switchTab,
           onGoogleLogin: _handleGoogleLogin,
           emailController: emailController,
           passwordController: passwordController,
+          onLogin: _handleLogin,
+          isLoading: isLoading,
         );
         break;
       case 1:
@@ -100,21 +133,57 @@ class _LoginScreenState extends State<LoginScreen> {
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6), // Reduced blur
             child: Container(
-              color: const Color.fromRGBO(
-                0,
-                0,
-                0,
-                0.4,
-              ), // Lighter overlay (0.5 → 0.4)
+              color: colorScheme.surface.withValues(
+                alpha: 0.6,
+              ), // use themed surface
               width: double.infinity,
               height: double.infinity,
             ),
           ),
-          
+
           // Main content
-          isLoading 
-              ? const Center(child: CircularProgressIndicator(color: Colors.white))
-              : page,
+          Column(
+            children: [
+              // ===== Draggable Title Bar + Buttons =====
+              Container(
+                color: Colors.transparent,
+                height: 50,
+                child: Row(
+                  children: [
+                    Expanded(child: MoveWindow()), // draggable area
+                    Row(
+                      children: [
+                        MinimizeWindowButton(
+                          colors: WindowButtonColors(
+                            iconNormal: colorScheme.onSurface,
+                          ),
+                        ),
+                        MaximizeWindowButton(
+                          colors: WindowButtonColors(
+                            iconNormal: colorScheme.onSurface,
+                          ),
+                        ),
+                        CloseWindowButton(
+                          colors: WindowButtonColors(
+                            iconNormal: colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              Expanded(
+                child:
+                    isLoading
+                        ? const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                        : page,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -122,11 +191,13 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class LogInWidget extends StatelessWidget {
-  final int selectedTab;
+  final int? selectedTab;
   final Function(int) onSwitchTab;
   final Function() onGoogleLogin;
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final Function() onLogin;
+  final bool isLoading;
 
   const LogInWidget({
     super.key,
@@ -135,20 +206,25 @@ class LogInWidget extends StatelessWidget {
     required this.onGoogleLogin,
     required this.emailController,
     required this.passwordController,
+    required this.onLogin,
+    required this.isLoading,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Container(
         width: 900,
-        height: 410,
+        height: 420,
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [
-              Color(0xFF121212),
-              Color(0xFF1E1E1E),
+              colorScheme.surface,
+              colorScheme.surface.withValues(alpha: 0.9),
             ], // Slightly lighter gradient
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -180,20 +256,13 @@ class LogInWidget extends StatelessWidget {
                             SvgPicture.asset(
                               'assets/svg/spotify.svg',
                               height: 50,
-                              colorFilter: const ColorFilter.mode(
-                                Colors.white,
+                              colorFilter: ColorFilter.mode(
+                                colorScheme.primary,
                                 BlendMode.srcIn,
                               ),
                             ),
                             const SizedBox(width: 15),
-                            const Text(
-                              'SpotifAI',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            Text('SpotifAI', style: textTheme.titleLarge),
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -209,22 +278,17 @@ class LogInWidget extends StatelessWidget {
                           obscureText: true,
                         ),
                         const SizedBox(height: 10),
-                        CustomButton(
-                          text: 'Log In',
-                          onPressed: () {
-                            // Handle regular login
-                          },
-                        ),
+                        CustomButton(text: 'Log In', onPressed: onLogin),
                         const SizedBox(height: 10),
                         Center(
-                          child: RichText(
-                            text: const TextSpan(
-                              text: 'Forgot your password?',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                          child: TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              'Forgot your password?',
+                              style: textTheme.bodyMedium?.copyWith(
                                 decoration: TextDecoration.underline,
+                                color: colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -236,7 +300,10 @@ class LogInWidget extends StatelessWidget {
                   // Divider between columns
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(width: 1, color: Colors.white24),
+                    child: Container(
+                      width: 1,
+                      color: colorScheme.onSurface.withValues(alpha: 0.2),
+                    ),
                   ),
 
                   // Right column - Social logins
@@ -245,14 +312,7 @@ class LogInWidget extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Or login with',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        Text('Or login with', style: textTheme.bodyLarge),
                         const SizedBox(height: 20),
                         SocialLoginButton(
                           icon: SvgPicture.asset(
@@ -279,34 +339,34 @@ class LogInWidget extends StatelessWidget {
                             'assets/svg/apple.svg',
                             height: 25,
                             width: 25,
-                            colorFilter: const ColorFilter.mode(
-                              Colors.white,
+                            colorFilter: ColorFilter.mode(
+                              colorScheme.onSurface,
                               BlendMode.srcIn,
                             ),
                           ),
                           text: 'Continue with Apple',
-                          onPressed: () async {
-                            await AppleAuthService.signIn();
-                          },
+                          onPressed:
+                              () async => await AppleAuthService.signIn(),
                         ),
                         const SizedBox(height: 30),
-                        GestureDetector(
-                          onTap: () => onSwitchTab(1),
+                        TextButton(
+                          onPressed: () => onSwitchTab(1),
                           child: RichText(
-                            text: const TextSpan(
+                            text: TextSpan(
                               text: "Don't have an account? ",
-                              style: TextStyle(
-                                color: Colors.white70,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.7,
+                                ),
                                 fontSize: 14,
                               ),
                               children: [
                                 TextSpan(
                                   text: 'Sign up for Spotify',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
+                                  style: textTheme.bodyMedium?.copyWith(
                                     decoration: TextDecoration.underline,
+                                    color: colorScheme.onSurface,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
@@ -327,7 +387,7 @@ class LogInWidget extends StatelessWidget {
 }
 
 class SignUpWidget extends StatelessWidget {
-  final int selectedTab;
+  final int? selectedTab;
   final Function(int) onSwitchTab;
 
   const SignUpWidget({
@@ -338,16 +398,19 @@ class SignUpWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Container(
         width: 450,
-        height: 410,
+        height: 420,
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [
-              Color(0xFF121212),
-              Color(0xFF1E1E1E),
+              colorScheme.surface,
+              colorScheme.surface.withValues(alpha: 0.9),
             ], // Slightly lighter gradient
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -370,20 +433,13 @@ class SignUpWidget extends StatelessWidget {
                 SvgPicture.asset(
                   'assets/svg/spotify.svg',
                   height: 50,
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
+                  colorFilter: ColorFilter.mode(
+                    colorScheme.primary,
                     BlendMode.srcIn,
                   ),
                 ),
                 const SizedBox(width: 15),
-                const Text(
-                  'SpotifAI',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text('SpotifAI', style: textTheme.titleLarge),
               ],
             ),
             const SizedBox(height: 10),
@@ -394,20 +450,30 @@ class SignUpWidget extends StatelessWidget {
               obscureText: true,
             ),
             const SizedBox(height: 10),
-            CustomButton(text: 'Sign Up', onPressed: () {}),
+
+            // Sign Up button
+            CustomButton(
+              text: 'Sign Up',
+              onPressed: () {
+                // TODO: Handle sign-up logic here
+              },
+            ),
             const SizedBox(height: 10),
+
             Center(
-              child: GestureDetector(
-                onTap: () => onSwitchTab(0),
+              child: TextButton(
+                onPressed: () => onSwitchTab(0),
                 child: RichText(
-                  text: const TextSpan(
-                    text: 'Already have account? ',
-                    style: TextStyle(color: Colors.white70),
+                  text: TextSpan(
+                    text: 'Already have an account? ',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
                     children: [
                       TextSpan(
                         text: 'Log in',
-                        style: TextStyle(
-                          color: Colors.white,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,

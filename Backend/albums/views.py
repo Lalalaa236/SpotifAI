@@ -6,6 +6,7 @@ from .models import Album
 from .serializers import AlbumSerializer
 from artists.models import Artist
 from songs.models import Song
+from songs.serializers import SongSerializer
 
 
 class AlbumViewSet(viewsets.ModelViewSet):
@@ -96,3 +97,23 @@ class AlbumViewSet(viewsets.ModelViewSet):
                 {"error": str(e)}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    @action(detail=True, methods=['get'])
+    def get_all_songs(self, request, pk=None):
+        try:
+            album = self.get_object()
+            songs = Song.objects.filter(album=album)
+            serializer = SongSerializer(songs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Album.DoesNotExist:
+            return Response(
+                {"error": "Album not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+ 
+    @action(detail=False, methods=['get'])
+    def search_album(self, request):
+        query = request.query_params.get('q', '')
+        albums = Album.objects.filter(title__icontains=query)
+        serializer = self.get_serializer(albums, many=True)
+        return Response(serializer.data)
