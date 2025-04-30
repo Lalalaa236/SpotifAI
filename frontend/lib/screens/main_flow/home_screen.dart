@@ -63,24 +63,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
       bottomNavigationBar: Footer(
-        songTitles: [
-          'Until I Found You',
-          'Until I Found You',
-          'Until I Found You',
-          'Until I Found You',
-        ],
-        artists: [
-          'Stephen Sanchez',
-          'Stephen Sanchez',
-          'Stephen Sanchez',
-          'Stephen Sanchez',
-        ],
+        songTitles: ['Hated By Life Itself', 'Lemon', 'Renai Circulation'],
+        artists: ['Iori Kanzaki', 'Kenshi Yonezu', 'Kana Hanazawa'],
         albumArt: 'assets/images/david_tao_album.jpg',
         audioSources: [
-          'assets/audio/album/Until I Found You.mp3',
-          'assets/audio/album/Lemon_Pop_-_the.verandas.mp3',
-          'assets/audio/album/Flowers_Of_September_-_The_Tangerine_Club.mp3',
-          'assets/audio/album/Yellow_-_Sam_Opoku.mp3',
+          'assets/audio/album/HatedByLifeItself.mp3',
+          'assets/audio/album/Lemon.mp3',
+          'assets/audio/album/RenaiCirculation.mp3',
         ],
       ),
     );
