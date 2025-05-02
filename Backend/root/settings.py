@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'albums',
     'songs',
     'playlists',
+    'genres',
 ]
 
 SITE_ID = 2  # Make sure this is set

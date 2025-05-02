@@ -31,6 +31,8 @@ dependencies:
   font_awesome_flutter: ^10.8.0
   audioplayers: ^6.4.0
   flutter_media_metadata: ^1.0.0+1
+  palette_generator: ^0.3.3+6
+  just_audio: ^0.10.1
 
 dev_dependencies:
   flutter_test:
@@ -61,3 +63,4 @@ flutter:
     - assets/images/
     - assets/svg/
     - assets/audio/
+    - assets/svg/footer/

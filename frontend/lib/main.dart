@@ -75,13 +75,6 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       routerConfig: _router,
-      builder: (context, child) {
-        return WindowBorder(
-          color: Colors.transparent,
-          width: 0,
-          child: Column(children: [MoveWindow(), Expanded(child: child!)]),
-        );
-      },
     );
   }
 }

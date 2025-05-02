@@ -106,11 +106,13 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
                       horizontal: 8,
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min, // shrink‑wrap row
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         ClipRRect(
+                          clipBehavior: Clip.hardEdge,
                           borderRadius: BorderRadius.circular(4),
                           child:
-                              // use network image if cover_image exists, else fallback to placeholder asset
                               (playlist['cover_image'] as String?)
                                           ?.isNotEmpty ==
                                       true
@@ -130,11 +132,12 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
                         if (isExpanded) ...[
                           const SizedBox(width: 10),
                           Expanded(
+                            // takes remaining space
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  playlist['title']!,
+                                  playlist['title'] as String,
                                   style: textTheme.bodyLarge?.copyWith(
                                     color: colorScheme.onSurface,
                                     fontWeight: FontWeight.bold,

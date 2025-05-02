@@ -1,12 +1,10 @@
-import "dart:io";
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter_media_metadata/flutter_media_metadata.dart';
+import 'dart:math';
 
 class Footer extends StatefulWidget {
-  final List<String> audioSources;
-  final String albumArt;
+  final List<String> audioSources; // URLs now
+  final List<String> albumArt; // Changed to List<String>
   final List<String> songTitles;
   final List<String> artists;
 
@@ -31,7 +29,9 @@ class _FooterState extends State<Footer> {
   double volume = 0.2;
   double previousVolume = 0.2;
   int currentIndex = 0;
-  Uint8List? albumCover;
+  bool isShuffle = false;
+  bool isRepeat = false;
+  final Random _random = Random();
 
   @override
   void initState() {
@@ -51,26 +51,38 @@ class _FooterState extends State<Footer> {
     });
 
     _audioPlayer.onPlayerComplete.listen((event) {
-      skipNext(); // Auto play next
+      if (isRepeat) {
+        _playAudio(); // Replay the current song
+      } else {
+        skipNext();
+      }
     });
 
     _audioPlayer.setVolume(volume);
-    _playAndLoadMeta();
   }
 
-  Future<void> _playAndLoadMeta() async {
-    // play
-    await _audioPlayer.play(
-      DeviceFileSource(widget.audioSources[currentIndex]),
-    );
-    // load metadata
-    final meta = await MetadataRetriever.fromFile(
-      File(widget.audioSources[currentIndex]),
-    );
+  @override
+  void didUpdateWidget(covariant Footer oldWidget) {
+    super.didUpdateWidget(oldWidget);
 
+    final hasNewPlaylist = oldWidget.audioSources != widget.audioSources;
+
+    if (hasNewPlaylist && widget.audioSources.isNotEmpty) {
+      currentIndex = 0;
+      _playAudio(); // autoplay new audio
+    } else if (widget.audioSources.isEmpty) {
+      setState(() {
+        isPlaying = false; // stop playing if no audio sources
+      });
+    }
+  }
+
+  Future<void> _playAudio() async {
+    await _audioPlayer.stop(); // stop current song before switching
+    String url = widget.audioSources[currentIndex];
+    await _audioPlayer.play(UrlSource(url));
     setState(() {
       isPlaying = true;
-      albumCover = meta.albumArt;
     });
   }
 
@@ -86,11 +98,22 @@ class _FooterState extends State<Footer> {
   }
 
   void skipNext() {
-    if (currentIndex < widget.audioSources.length - 1) {
+    if (widget.audioSources.isEmpty) return;
+
+    if (isShuffle) {
+      int nextIndex;
+      do {
+        nextIndex = _random.nextInt(widget.audioSources.length);
+      } while (nextIndex == currentIndex && widget.audioSources.length > 1);
+      setState(() {
+        currentIndex = nextIndex;
+      });
+      _playAudio();
+    } else if (currentIndex < widget.audioSources.length - 1) {
       setState(() {
         currentIndex++;
       });
-      _playAndLoadMeta();
+      _playAudio();
     }
   }
 
@@ -99,24 +122,34 @@ class _FooterState extends State<Footer> {
       setState(() {
         currentIndex--;
       });
-      _playAndLoadMeta();
+      _playAudio();
     }
   }
 
   void toggleMute() {
     setState(() {
       if (isMuted) {
-        // unmute
         volume = previousVolume;
         _audioPlayer.setVolume(volume);
         isMuted = false;
       } else {
-        // mute
         previousVolume = volume;
         volume = 0;
         _audioPlayer.setVolume(0);
         isMuted = true;
       }
+    });
+  }
+
+  void toggleShuffle() {
+    setState(() {
+      isShuffle = !isShuffle;
+    });
+  }
+
+  void toggleRepeat() {
+    setState(() {
+      isRepeat = !isRepeat;
     });
   }
 
@@ -148,58 +181,64 @@ class _FooterState extends State<Footer> {
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Row(
         children: [
-          // LEFT: Song Info
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child:
-                    albumCover != null
-                        ? Image.memory(
-                          albumCover!,
-                          width: 65,
-                          height: 65,
-                          fit: BoxFit.cover,
-                        )
-                        : Image.asset(
-                          widget.albumArt, // fallback asset
-                          width: 65,
-                          height: 65,
-                          fit: BoxFit.cover,
+          SizedBox(
+            width: 250,
+            child:
+                (widget.audioSources.isEmpty ||
+                        widget.albumArt.isEmpty ||
+                        widget.songTitles.isEmpty ||
+                        widget.artists.isEmpty)
+                    ? const SizedBox.shrink()
+                    : Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: Image.network(
+                            widget.albumArt[currentIndex],
+                            width: 65,
+                            height: 65,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.songTitles[currentIndex],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.songTitles[currentIndex],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                widget.artists[currentIndex],
+                                style: const TextStyle(color: Colors.grey),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  Text(
-                    widget.artists[currentIndex],
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ],
           ),
           const Spacer(),
-
-          // CENTER: Controls
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.shuffle, color: Colors.white),
-                    onPressed: () {},
+                    icon: Icon(
+                      Icons.shuffle,
+                      color: isShuffle ? Colors.green : Colors.white,
+                    ),
+                    onPressed: toggleShuffle,
                   ),
+
                   IconButton(
                     icon: const Icon(Icons.skip_previous, color: Colors.white),
                     onPressed: skipPrevious,
@@ -219,8 +258,11 @@ class _FooterState extends State<Footer> {
                     onPressed: skipNext,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.repeat, color: Colors.white),
-                    onPressed: () {},
+                    icon: Icon(
+                      Icons.repeat,
+                      color: isRepeat ? Colors.green : Colors.white,
+                    ),
+                    onPressed: toggleRepeat,
                   ),
                 ],
               ),
@@ -235,7 +277,7 @@ class _FooterState extends State<Footer> {
                     width: 600,
                     child: SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        trackHeight: 2, // thinner track
+                        trackHeight: 2,
                         thumbShape: const RoundSliderThumbShape(
                           enabledThumbRadius: 6,
                         ),
@@ -264,9 +306,7 @@ class _FooterState extends State<Footer> {
               ),
             ],
           ),
-
           const Spacer(),
-
           Row(
             children: [
               IconButton(
@@ -280,7 +320,7 @@ class _FooterState extends State<Footer> {
                 width: 150,
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    trackHeight: 2, // thinner track
+                    trackHeight: 2,
                     thumbShape: const RoundSliderThumbShape(
                       enabledThumbRadius: 6,
                     ),

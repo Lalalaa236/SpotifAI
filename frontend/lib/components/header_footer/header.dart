@@ -3,7 +3,18 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 
 class Header extends StatelessWidget {
-  const Header({super.key});
+  final VoidCallback? onUndo;
+  final VoidCallback? onRedo;
+  final bool canUndo;
+  final bool canRedo;
+
+  const Header({
+    super.key,
+    this.onUndo,
+    this.onRedo,
+    this.canUndo = false,
+    this.canRedo = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +35,7 @@ class Header extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Left section with menu and undo/redo
             Row(
               children: [
                 Icon(
@@ -32,20 +44,31 @@ class Header extends StatelessWidget {
                   size: 22,
                 ),
                 const SizedBox(width: 40),
-                Icon(
-                  Icons.arrow_back_ios,
-                  color: colorScheme.onSurface,
-                  size: 22,
+                IconButton(
+                  onPressed: canUndo ? onUndo : null,
+                  icon: Icon(Icons.arrow_back_ios),
+                  color:
+                      canUndo
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurface.withOpacity(0.3),
+                  iconSize: 22,
+                  tooltip: 'Undo',
                 ),
                 const SizedBox(width: 8.0),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: colorScheme.onSurface,
-                  size: 22,
+                IconButton(
+                  onPressed: canRedo ? onRedo : null,
+                  icon: Icon(Icons.arrow_forward_ios),
+                  color:
+                      canRedo
+                          ? colorScheme.onSurface
+                          : colorScheme.onSurface.withOpacity(0.3),
+                  iconSize: 22,
+                  tooltip: 'Redo',
                 ),
               ],
             ),
 
+            // Center search bar
             Row(
               children: [
                 Container(
@@ -53,8 +76,7 @@ class Header extends StatelessWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color:
-                        colorScheme.surface, // Optional: Add a background color
+                    color: colorScheme.surface,
                   ),
                   alignment: Alignment.center,
                   child: SvgPicture.asset(
@@ -67,7 +89,6 @@ class Header extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8.0),
-
                 Container(
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
@@ -89,7 +110,7 @@ class Header extends StatelessWidget {
                       ),
                       const SizedBox(width: 10.0),
                       SizedBox(
-                        width: 400, // Adjust width as needed
+                        width: 400,
                         child: TextField(
                           decoration: InputDecoration(
                             hintText: 'What do you want to play?',
@@ -115,7 +136,7 @@ class Header extends StatelessWidget {
               ],
             ),
 
-            // Window buttons
+            // Right window controls
             Row(
               children: [
                 Container(
@@ -123,8 +144,7 @@ class Header extends StatelessWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color:
-                        colorScheme.surface, // Optional: Add a background color
+                    color: colorScheme.surface,
                   ),
                   alignment: Alignment.center,
                   child: CircleAvatar(
@@ -136,7 +156,6 @@ class Header extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(width: 10),
                 MinimizeWindowButton(
                   colors: WindowButtonColors(iconNormal: colorScheme.onSurface),

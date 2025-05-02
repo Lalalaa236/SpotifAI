@@ -26,7 +26,7 @@ class AlbumSongApi {
 
       // Fetch songs of a specific album
       final response = await DioClient.instance.get(
-        '/v1/albums/$albumId/songs/',
+        '/v1/albums/$albumId/get_all_songs/',
       );
       if (response.statusCode == 200) {
         return response.data as List<dynamic>;

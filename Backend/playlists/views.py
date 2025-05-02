@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from .models import Playlist
 from .serializers import PlaylistSerializer
 from songs.models import Song
+from albums.models import Album
 
 
 class PlaylistViewSet(viewsets.ModelViewSet):
@@ -64,5 +65,28 @@ class PlaylistViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response(
                 {"error": str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    @action(detail=True, methods=['post'])
+    def add_album(self, request, pk=None):
+        playlist = self.get_object()
+        try:
+            album_id = request.data.get('album_id')
+            album = Album.objects.get(id=album_id)
+            songs = Song.objects.filter(album=album)
+            playlist.songs.add(*songs)
+            return Response(
+                {"message": f"All songs from album '{album.title}' added to playlist '{playlist.name}'"},
+                status=status.HTTP_200_OK
+            )
+        except Album.DoesNotExist:
+            return Response(
+                {"error": "Album not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
