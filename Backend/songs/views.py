@@ -4,6 +4,8 @@ from rest_framework.response import Response
 
 from .models import Song
 from .serializers import SongSerializer
+from artists.models import Artist
+from albums.models import Album
 
 class SongViewSet(viewsets.ModelViewSet):
     queryset = Song.objects.all()
@@ -19,4 +21,36 @@ class SongViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": "Song not found"},
                 status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=False, methods=['get'])
+    def find_song(self, request):
+        query = request.query_params.get('q', '')
+        songs = Song.objects.filter(title__icontains=query)
+        serializer = self.get_serializer(songs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def fetch_songs_by_artist(self, request):
+        artist_id = request.query_params.get('artist_id')
+        try:
+            albums = Album.objects.filter(artist_id=artist_id)
+            if not albums.exists():
+                return Response(
+                    {"error": "No albums found for the given artist. So cannot fetch songs of the given artists."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            songs = Song.objects.filter(album__in=albums)
+            serializer = self.get_serializer(songs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Artist.DoesNotExist:
+            return Response(
+                {"error": "Artist not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
             )
