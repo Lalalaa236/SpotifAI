@@ -34,21 +34,16 @@ class SongViewSet(viewsets.ModelViewSet):
     def fetch_songs_by_artist(self, request):
         artist_id = request.query_params.get('artist_id')
         try:
-            albums = Album.objects.filter(artist_id=artist_id)
-            if not albums.exists():
+            # Direct query using the many-to-many relationship
+            songs = Song.objects.filter(artists__id=artist_id)
+            if not songs.exists():
                 return Response(
-                    {"error": "No albums found for the given artist. So cannot fetch songs of the given artists."},
+                    {"error": "No songs found for the given artist."},
                     status=status.HTTP_404_NOT_FOUND
                 )
             
-            songs = Song.objects.filter(album__in=albums)
             serializer = self.get_serializer(songs, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Artist.DoesNotExist:
-            return Response(
-                {"error": "Artist not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
         except Exception as e:
             return Response(
                 {"error": str(e)},
