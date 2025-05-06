@@ -32,7 +32,7 @@ class AddAlbumToPlaylistApi {
       final playlistId = createPlaylistResponse.data['id'];
 
       return await DioClient.instance.post(
-        '/v1/playlists/$playlistId/add_album_to_playlist/',
+        '/v1/playlists/$playlistId/add_album/',
         data: {'album_id': albumId},
       );
     } catch (e) {
@@ -47,12 +47,15 @@ class AddAlbumToPlaylistApi {
     try {
       await _setCsrfTokenAndCookies();
 
-      return await DioClient.instance.post(
-        '/v1/playlists/$playlistId/add_album_to_playlist/',
+      final response = await DioClient.instance.post(
+        '/v1/playlists/$playlistId/add_album/',
         data: {'album_id': albumId},
       );
+
+      return response;
     } catch (e) {
-      throw Exception('Error adding album to existing playlist: $e');
+      print('Detailed error: $e');
+      rethrow;
     }
   }
 }

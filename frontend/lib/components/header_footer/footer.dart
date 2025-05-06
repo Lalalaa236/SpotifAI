@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:math';
 
-class Footer extends StatefulWidget {
-  final List<String> audioSources; // URLs now
-  final List<String> albumArt; // Changed to List<String>
-  final List<String> songTitles;
-  final List<String> artists;
+import '../../utils/app_bloc.dart';
 
-  const Footer({
-    super.key,
-    required this.audioSources,
-    required this.albumArt,
-    required this.songTitles,
-    required this.artists,
-  });
+class Footer extends StatefulWidget {
+  final List<Song> songs;
+
+  const Footer({super.key, required this.songs});
 
   @override
   State<Footer> createState() => _FooterState();
@@ -31,7 +24,8 @@ class _FooterState extends State<Footer> {
   int currentIndex = 0;
   bool isShuffle = false;
   bool isRepeat = false;
-  final Random _random = Random();
+  List<int> shuffledIndices = [];
+  int shuffledPosition = 0;
 
   @override
   void initState() {
@@ -65,21 +59,28 @@ class _FooterState extends State<Footer> {
   void didUpdateWidget(covariant Footer oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    final hasNewPlaylist = oldWidget.audioSources != widget.audioSources;
+    final hasNewPlaylist = oldWidget.songs != widget.songs;
 
-    if (hasNewPlaylist && widget.audioSources.isNotEmpty) {
+    if (hasNewPlaylist && widget.songs.isNotEmpty) {
       currentIndex = 0;
       _playAudio(); // autoplay new audio
-    } else if (widget.audioSources.isEmpty) {
+    } else if (widget.songs.isEmpty) {
       setState(() {
-        isPlaying = false; // stop playing if no audio sources
+        isPlaying = false; // stop playing if no songs
       });
     }
   }
 
   Future<void> _playAudio() async {
-    await _audioPlayer.stop(); // stop current song before switching
-    String url = widget.audioSources[currentIndex];
+    await _audioPlayer.stop();
+
+    if (isShuffle && shuffledIndices.isEmpty) {
+      _generateShuffleList();
+      shuffledPosition = 0;
+      currentIndex = shuffledIndices[shuffledPosition];
+    }
+
+    String url = widget.songs[currentIndex].audioSource;
     await _audioPlayer.play(UrlSource(url));
     setState(() {
       isPlaying = true;
@@ -97,32 +98,56 @@ class _FooterState extends State<Footer> {
     });
   }
 
-  void skipNext() {
-    if (widget.audioSources.isEmpty) return;
+  void _generateShuffleList() {
+    final random = Random();
+    shuffledIndices = List<int>.generate(widget.songs.length, (i) => i);
+    shuffledIndices.remove(currentIndex); // Remove the current song index
+    shuffledIndices.shuffle(random);
+    shuffledIndices.insert(0, currentIndex); // Put current song first
+    shuffledPosition = 0; // Set position to current song
+  }
 
+  void skipNext() {
     if (isShuffle) {
-      int nextIndex;
-      do {
-        nextIndex = _random.nextInt(widget.audioSources.length);
-      } while (nextIndex == currentIndex && widget.audioSources.length > 1);
-      setState(() {
-        currentIndex = nextIndex;
-      });
-      _playAudio();
-    } else if (currentIndex < widget.audioSources.length - 1) {
-      setState(() {
-        currentIndex++;
-      });
-      _playAudio();
+      if (shuffledPosition < shuffledIndices.length - 1) {
+        shuffledPosition++;
+        currentIndex = shuffledIndices[shuffledPosition];
+        _playAudio();
+      } else if (isRepeat) {
+        _generateShuffleList();
+        shuffledPosition = 0;
+        currentIndex = shuffledIndices[shuffledPosition];
+        _playAudio();
+      }
+    } else {
+      if (currentIndex < widget.songs.length - 1) {
+        setState(() {
+          currentIndex++;
+        });
+        _playAudio();
+      } else if (isRepeat) {
+        setState(() {
+          currentIndex = 0;
+        });
+        _playAudio();
+      }
     }
   }
 
   void skipPrevious() {
-    if (currentIndex > 0) {
-      setState(() {
-        currentIndex--;
-      });
-      _playAudio();
+    if (isShuffle) {
+      if (shuffledPosition > 0) {
+        shuffledPosition--;
+        currentIndex = shuffledIndices[shuffledPosition];
+        _playAudio();
+      }
+    } else {
+      if (currentIndex > 0) {
+        setState(() {
+          currentIndex--;
+        });
+        _playAudio();
+      }
     }
   }
 
@@ -144,6 +169,12 @@ class _FooterState extends State<Footer> {
   void toggleShuffle() {
     setState(() {
       isShuffle = !isShuffle;
+      if (isShuffle) {
+        _generateShuffleList();
+      } else {
+        shuffledIndices.clear();
+        shuffledPosition = 0;
+      }
     });
   }
 
@@ -184,17 +215,14 @@ class _FooterState extends State<Footer> {
           SizedBox(
             width: 250,
             child:
-                (widget.audioSources.isEmpty ||
-                        widget.albumArt.isEmpty ||
-                        widget.songTitles.isEmpty ||
-                        widget.artists.isEmpty)
+                widget.songs.isEmpty
                     ? const SizedBox.shrink()
                     : Row(
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: Image.network(
-                            widget.albumArt[currentIndex],
+                            widget.songs[currentIndex].albumArt,
                             width: 65,
                             height: 65,
                             fit: BoxFit.cover,
@@ -207,7 +235,7 @@ class _FooterState extends State<Footer> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.songTitles[currentIndex],
+                                widget.songs[currentIndex].title,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -215,7 +243,7 @@ class _FooterState extends State<Footer> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                widget.artists[currentIndex],
+                                widget.songs[currentIndex].artist,
                                 style: const TextStyle(color: Colors.grey),
                                 overflow: TextOverflow.ellipsis,
                               ),

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../main_widget/playlist_detail.dart';
+
+import '../../utils/app_bloc.dart';
 
 class ExpandableSidebar extends StatefulWidget {
-  final List<Map<String, dynamic>> playlists; // {title, subtitle, imagePath}
+  final void Function(Widget) onNavigate;
 
-  const ExpandableSidebar({super.key, required this.playlists});
+  const ExpandableSidebar({super.key, required this.onNavigate});
 
   @override
   State<ExpandableSidebar> createState() => _ExpandableSidebarState();
@@ -37,10 +42,13 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
           crossAxisAlignment:
               isExpanded ? CrossAxisAlignment.start : CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 5),
-
             Padding(
-              padding: const EdgeInsets.only(left: 15.0),
+              padding: const EdgeInsets.only(
+                left: 15.0,
+                right: 10.0,
+                top: 10.0,
+                bottom: 5.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -48,21 +56,37 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
                     MouseRegion(
                       onEnter: (_) => setState(() => _isLibraryHovered = true),
                       onExit: (_) => setState(() => _isLibraryHovered = false),
-                      child:
-                          _isLibraryHovered
-                              ? IconButton(
-                                icon: SvgPicture.asset(
-                                  'assets/svg/libraryf.svg',
-                                  height: 20,
-                                  colorFilter: ColorFilter.mode(
-                                    colorScheme.onSurface,
-                                    BlendMode.srcIn,
+                      child: GestureDetector(
+                        onTap: toggleSidebar,
+                        child: SizedBox(
+                          height: 40,
+                          child: Stack(
+                            alignment: Alignment.centerLeft,
+                            children: [
+                              // Sliding icon from left
+                              AnimatedPositioned(
+                                duration: const Duration(milliseconds: 250),
+                                left: _isLibraryHovered ? 0 : -30,
+                                child: AnimatedOpacity(
+                                  duration: const Duration(milliseconds: 250),
+                                  opacity: _isLibraryHovered ? 1.0 : 0.0,
+                                  child: SvgPicture.asset(
+                                    'assets/svg/libraryf.svg',
+                                    height: 20,
+                                    colorFilter: ColorFilter.mode(
+                                      colorScheme.onSurface,
+                                      BlendMode.srcIn,
+                                    ),
                                   ),
                                 ),
-                                onPressed: toggleSidebar,
-                              )
-                              : GestureDetector(
-                                onTap: toggleSidebar,
+                              ),
+
+                              // Slightly shifted text on hover
+                              AnimatedPadding(
+                                duration: const Duration(milliseconds: 250),
+                                padding: EdgeInsets.only(
+                                  left: _isLibraryHovered ? 30 : 0,
+                                ),
                                 child: Text(
                                   'Your Library',
                                   style: textTheme.titleMedium?.copyWith(
@@ -71,6 +95,10 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
                                   ),
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                      ),
                     )
                   else
                     IconButton(
@@ -85,80 +113,117 @@ class _ExpandableSidebarState extends State<ExpandableSidebar> {
                       onPressed: toggleSidebar,
                     ),
                   if (isExpanded)
-                    IconButton(
-                      icon: Icon(Icons.add, color: colorScheme.onSurface),
-                      onPressed: () {
-                        // TODO: Add functionality to create a new playlist
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: Handle create playlist action
                       },
+                      child: Center(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF424242),
+                            borderRadius: BorderRadius.circular(24.0),
+                          ),
+                          padding: const EdgeInsets.only(
+                            left: 8.0,
+                            right: 12.0,
+                            top: 8.0,
+                            bottom: 8.0,
+                          ),
+                          child: Row(
+                            mainAxisSize:
+                                MainAxisSize.min, // Wrap content tightly
+                            children: [
+                              Icon(Icons.add, color: colorScheme.onSurface),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Create',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                 ],
               ),
             ),
 
             Expanded(
-              child: ListView.builder(
-                itemCount: widget.playlists.length,
-                itemBuilder: (context, index) {
-                  final playlist = widget.playlists[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 8,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min, // shrink‑wrap row
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ClipRRect(
-                          clipBehavior: Clip.hardEdge,
-                          borderRadius: BorderRadius.circular(4),
-                          child:
-                              (playlist['cover_image'] as String?)
-                                          ?.isNotEmpty ==
-                                      true
-                                  ? Image.network(
-                                    playlist['cover_image'] as String,
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                  )
-                                  : Image.asset(
-                                    'assets/images/david_tao_album.jpg',
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                  ),
-                        ),
-                        if (isExpanded) ...[
-                          const SizedBox(width: 10),
-                          Expanded(
-                            // takes remaining space
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  playlist['title'] as String,
-                                  style: textTheme.bodyLarge?.copyWith(
-                                    color: colorScheme.onSurface,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+              child: BlocBuilder<AppCubit, AppState>(
+                builder: (context, state) {
+                  return ListView.builder(
+                    itemCount: state.playlists.length,
+                    itemBuilder: (context, index) {
+                      final playlist = state.playlists[index];
+                      return GestureDetector(
+                        onTap: () {
+                          context.read<AppCubit>().setIsHome(false);
+                          widget.onNavigate(
+                            PlaylistDetail(
+                              playlist: playlist,
+                              onPlayAlbum:
+                                  context.read<AppCubit>().setFooterSongs,
+                              onAddToQueue: context.read<AppCubit>().addToQueue,
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 10,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min, // shrink‑wrap row
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ClipRRect(
+                                clipBehavior: Clip.hardEdge,
+                                borderRadius: BorderRadius.circular(4),
+                                child: Image.network(
+                                  playlist['cover_image'] as String,
+                                  width: 50,
+                                  height: 50,
+                                  fit: BoxFit.cover,
                                 ),
-                                Text(
-                                  'Playlist - Hưng',
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSecondary,
+                              ),
+                              if (isExpanded) ...[
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  // takes remaining space
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        playlist['name'] as String,
+                                        style: textTheme.bodyLarge?.copyWith(
+                                          color: colorScheme.onSurface,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                      Text(
+                                        'Playlist - Hưng',
+                                        style: textTheme.bodyMedium?.copyWith(
+                                          color: colorScheme.onSecondary,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ],
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
                                 ),
                               ],
-                            ),
+                            ],
                           ),
-                        ],
-                      ],
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),

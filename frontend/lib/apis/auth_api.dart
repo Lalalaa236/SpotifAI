@@ -58,29 +58,31 @@ class AuthApi extends BaseApi {
 
   static Future<bool> login(String email, String password) async {
     try {
-      // Fetch CSRF token and cookies
+      // Step 1: Fetch CSRF token and cookies from login page
       final response = await DioClient.instance.get('/v1/accounts/login/');
+      print('Initial login page headers: ${response.headers}');
       final csrfData = DioClient.getCsrfTokenAndCookies(response);
       final csrfToken = csrfData['csrfToken']!;
       final cookies = csrfData['cookies']!;
 
-      // Set CSRF token and cookies in headers
+      // Step 2: Set CSRF token and cookies in headers for login request
       DioClient.instance.options.headers['X-CSRFToken'] = csrfToken;
       DioClient.instance.options.headers['Cookie'] = cookies;
 
-      // Send login request
+      // Step 3: Send login request
       final loginResponse = await DioClient.instance.post(
         '/v1/accounts/login/',
         data: 'login=$email&password=$password',
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
 
+      // Step 4: On success, save new cookies and CSRF token from Set-Cookie
       if (loginResponse.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
-        final setCookie = response.headers['set-cookie']?.join('; ') ?? '';
-        final csrfToken = response.headers.value('x-csrftoken') ?? '';
-        await prefs.setString('cookies', setCookie);
-        await prefs.setString('csrf_token', csrfToken);
+        print('Login response headers: ${loginResponse.headers}');
+        final updatedCsrfData = DioClient.getCsrfTokenAndCookies(loginResponse);
+        await prefs.setString('cookies', updatedCsrfData['cookies']!);
+        await prefs.setString('csrf_token', updatedCsrfData['csrfToken']!);
         return true;
       } else {
         return false;
