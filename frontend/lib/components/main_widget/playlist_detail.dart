@@ -45,6 +45,7 @@ class _PlaylistDetailState extends State<PlaylistDetail>
             artist: artistNames,
             albumArt: songData['cover_image'] as String? ?? '',
             audioSource: songData['audio_url'] as String? ?? '',
+            duration: '--:--', // Placeholder for duration
           );
         }).toList();
     _extractDominantColor();
@@ -68,6 +69,7 @@ class _PlaylistDetailState extends State<PlaylistDetail>
                 artist: artistNames,
                 albumArt: songData['cover_image'] as String? ?? '',
                 audioSource: songData['audio_url'] as String? ?? '',
+                duration: '--:--', // Placeholder for duration
               );
             }).toList();
       });

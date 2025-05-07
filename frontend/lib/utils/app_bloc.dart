@@ -5,12 +5,14 @@ class Song {
   final String artist;
   final String albumArt;
   final String audioSource;
+  final String duration; // Add duration field
 
   Song({
     required this.title,
     required this.artist,
     required this.albumArt,
     required this.audioSource,
+    required this.duration,
   });
 }
 

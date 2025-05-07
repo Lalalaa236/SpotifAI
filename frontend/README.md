@@ -14,3 +14,121 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+# Yaml recover version
+
+name: frontend
+
+description: "A new Flutter project."
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+
+sdk: ^3.7.0
+
+dependencies:
+
+flutter:
+
+    sdk: flutter
+
+crypto: ^3.0.1
+
+cupertino_icons: ^1.0.8
+
+http: ^1.3.0
+
+oauth2: ^2.0.3
+
+url_launcher: ^6.3.1
+
+flutter_svg: ^2.0.17
+
+window_size: ^0.1.0
+
+flutter_dotenv: ^5.2.1
+
+shared_preferences: ^2.5.3
+
+dio: ^5.8.0+1
+
+logging: ^1.3.0
+
+go_router: ^15.1.1
+
+bitsdojo_window: ^0.1.6
+
+font_awesome_flutter: ^10.8.0
+
+audioplayers: ^6.4.0
+
+flutter_media_metadata: ^1.0.0+1
+
+palette_generator: ^0.3.3+6
+
+flutter_bloc: ^9.1.1
+
+just_audio: ^0.10.2
+
+just_audio_windows: ^0.2.2
+
+just_audio_media_kit: any
+
+media_kit_libs_windows_audio: any
+
+dev_dependencies:
+
+flutter_test:
+
+    sdk: flutter
+
+flutter_lints: ^5.0.0
+
+flutter_launcher_icons: "^0.14.3"
+
+flutter_launcher_icons:
+
+image_path: "assets/icon/icon.png"
+
+web:
+
+    generate: true
+
+    image_path: "assets/icon/icon.png"
+
+    background_color: "#000"
+
+    theme_color: "#000"
+
+windows:
+
+    generate: true
+
+    image_path: "assets/icon/icon.png"
+
+    icon_size: 48
+
+macos:
+
+    generate: true
+
+    image_path: "assets/icon/icon.png"
+
+flutter:
+
+uses-material-design: true
+
+assets:
+
+    - assets/icon/
+
+    - assets/images/
+
+    - assets/svg/
+
+    - assets/audio/
+
+    - assets/svg/footer/

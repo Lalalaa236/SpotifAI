@@ -32,6 +32,7 @@ class _AlbumDetailState extends State<AlbumDetail>
     with SingleTickerProviderStateMixin {
   final _logger = Logger('AlbumDetail');
   List<Song> songs = [];
+  late AudioPlayer _audioPlayer;
   bool isLoading = true;
   PaletteColor? dominantColor;
   late AnimationController _controller;
@@ -40,6 +41,8 @@ class _AlbumDetailState extends State<AlbumDetail>
   @override
   void initState() {
     super.initState();
+    _audioPlayer = AudioPlayer();
+
     _initAnimation();
     _fetchSongs();
     _extractDominantColor();
@@ -69,24 +72,28 @@ class _AlbumDetailState extends State<AlbumDetail>
   }
 
   Future<String> getSongDuration(String url) async {
-    final player = AudioPlayer();
     try {
-      await player.setUrl(url);
+      // Ensure the URL is valid
+      if (url.isEmpty) {
+        _logger.warning('Invalid URL provided for song duration');
+        return '--:--';
+      }
+
+      // Set the URL and fetch the duration
+      await _audioPlayer.setUrl(url);
 
       // Wait until the duration is available
-      Duration? duration = await player.durationStream.firstWhere(
+      Duration? duration = await _audioPlayer.durationStream.firstWhere(
         (d) => d != null,
         orElse: () => const Duration(seconds: 0),
       );
 
-      await player.dispose();
-
+      // Format the duration into mm:ss
       final minutes = duration!.inMinutes;
       final seconds = duration.inSeconds % 60;
       return '$minutes:${seconds.toString().padLeft(2, '0')}';
     } catch (e, stackTrace) {
-      _logger.severe('Error fetching song duration', e, stackTrace);
-      await player.dispose();
+      _logger.severe('Error fetching song duration from $url', e, stackTrace);
       return '--:--';
     }
   }
@@ -97,20 +104,27 @@ class _AlbumDetailState extends State<AlbumDetail>
       final List<Map<String, dynamic>> fetchedSongs =
           List<Map<String, dynamic>>.from(result);
 
-      final parsedSongs =
-          fetchedSongs.map((songData) {
-            final artistList = songData['artists'] as List<dynamic>? ?? [];
-            final artistNames = artistList
-                .map((a) => (a as Map<String, dynamic>)['name'] as String)
-                .join(', ');
+      final parsedSongs = await Future.wait(
+        fetchedSongs.map((songData) async {
+          final artistList = songData['artists'] as List<dynamic>? ?? [];
+          final artistNames = artistList
+              .map((a) => (a as Map<String, dynamic>)['name'] as String)
+              .join(', ');
 
-            return Song(
-              title: songData['title'] as String,
-              artist: artistNames,
-              albumArt: songData['cover_image'] as String? ?? '',
-              audioSource: songData['audio_url'] as String? ?? '',
-            );
-          }).toList();
+          final audioSource = songData['audio_url'] as String? ?? '';
+          final duration = await getSongDuration(
+            audioSource,
+          ); // Fetch duration here
+
+          return Song(
+            title: songData['title'] as String,
+            artist: artistNames,
+            albumArt: songData['cover_image'] as String? ?? '',
+            audioSource: audioSource,
+            duration: duration, // Add duration to the Song object
+          );
+        }).toList(),
+      );
 
       if (!mounted) return; // Ensure the widget is still mounted
       setState(() {
@@ -175,6 +189,7 @@ class _AlbumDetailState extends State<AlbumDetail>
 
   @override
   void dispose() {
+    _audioPlayer.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -467,12 +482,6 @@ class _AlbumDetailState extends State<AlbumDetail>
                                 itemBuilder: (context, index) {
                                   final song = songs[index];
 
-                                  final imageWidget = const Icon(
-                                    Icons.music_note,
-                                    color: Colors.white54,
-                                    size: 32,
-                                  );
-
                                   return GestureDetector(
                                     onSecondaryTapDown: (
                                       TapDownDetails details,
@@ -542,8 +551,15 @@ class _AlbumDetailState extends State<AlbumDetail>
                                                     height: 40,
                                                     fit: BoxFit.cover,
                                                     errorBuilder:
-                                                        (context, _, __) =>
-                                                            imageWidget,
+                                                        (
+                                                          context,
+                                                          _,
+                                                          __,
+                                                        ) => const Icon(
+                                                          Icons.music_note,
+                                                          color: Colors.white54,
+                                                          size: 32,
+                                                        ),
                                                   ),
                                                 ),
                                                 const SizedBox(width: 10),
@@ -563,7 +579,7 @@ class _AlbumDetailState extends State<AlbumDetail>
                                           SizedBox(
                                             width: 60,
                                             child: Text(
-                                              '--:--',
+                                              song.duration, // Use the pre-fetched duration
                                               textAlign: TextAlign.right,
                                               style: const TextStyle(
                                                 color: Colors.white70,
