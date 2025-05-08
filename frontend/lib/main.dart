@@ -18,7 +18,7 @@ import 'theme/colors.dart';
 import 'utils/app_bloc.dart';
 
 void main() {
-  HardwareKeyboard.instance.clearState();
+  // HardwareKeyboard.instance.clearState();
   Logger.root.level = Level.ALL; // Set the logging level
   Logger.root.onRecord.listen((record) {
     // Use the logging framework instead of print

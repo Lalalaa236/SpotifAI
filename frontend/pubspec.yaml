@@ -61,5 +61,5 @@ flutter:
     - assets/icon/
     - assets/images/
     - assets/svg/
-    - assets/audio/
+    # - assets/audio/
     - assets/svg/footer/

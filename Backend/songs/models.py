@@ -10,7 +10,6 @@ class Song(models.Model):
     audio_url = models.URLField(null=True, blank=True)
     cover_image = models.URLField(null=True, blank=True)
     genres = models.ManyToManyField(Genre, related_name="songs")
-    audio_file = models.FileField(null=True, upload_to="songs/")
 
     def __str__(self):
         return self.title
