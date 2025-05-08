@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Song {
+  final int id;
   final String title;
   final String artist;
   final String albumArt;
@@ -8,6 +9,7 @@ class Song {
   final String duration; // Add duration field
 
   Song({
+    required this.id,
     required this.title,
     required this.artist,
     required this.albumArt,

@@ -18,6 +18,32 @@ class PlaylistSongApi {
     }
   }
 
+  static Future<void> removeSongFromPlaylist(int playlistId, int songId) async {
+    try {
+      await _setCsrfTokenAndCookies();
+
+      final response = await DioClient.instance.post(
+        '/v1/playlists/$playlistId/remove_song/',
+        data: {
+          'song_id': songId, // Pass the song ID in the request body
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Successfully removed the song
+        return;
+      } else if (response.statusCode == 400) {
+        throw Exception('Song not in playlist or invalid request');
+      } else if (response.statusCode == 404) {
+        throw Exception('Song not found');
+      } else {
+        throw Exception('Failed to remove song from playlist');
+      }
+    } catch (e) {
+      throw Exception('Error removing song from playlist: $e');
+    }
+  }
+
   /// Reuse token + cookie setup
   static Future<void> _setCsrfTokenAndCookies() async {
     final prefs = await SharedPreferences.getInstance();

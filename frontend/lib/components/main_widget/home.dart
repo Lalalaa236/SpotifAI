@@ -67,14 +67,7 @@ class _HomeState extends State<Home> {
                     return GestureDetector(
                       onTap: () {
                         context.read<AppCubit>().setIsHome(false);
-                        widget.onNavigate(
-                          PlaylistDetail(
-                            playlist: item,
-                            onPlayAlbum:
-                                context.read<AppCubit>().setFooterSongs,
-                            onAddToQueue: context.read<AppCubit>().addToQueue,
-                          ),
-                        );
+                        widget.onNavigate(PlaylistDetail(playlist: item));
                       },
                       child: Container(
                         decoration: BoxDecoration(

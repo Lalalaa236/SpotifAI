@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'apis/dio_client.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 
 // Screens
@@ -18,7 +18,6 @@ import 'theme/colors.dart';
 import 'utils/app_bloc.dart';
 
 void main() {
-  HardwareKeyboard.instance.clearState();
   Logger.root.level = Level.ALL; // Set the logging level
   Logger.root.onRecord.listen((record) {
     // Use the logging framework instead of print
@@ -42,6 +41,7 @@ void main() {
   });
 
   WidgetsFlutterBinding.ensureInitialized();
+
   DioClient.init();
 
   runApp(
@@ -70,9 +70,14 @@ final _router = GoRouter(
   ],
 );
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
