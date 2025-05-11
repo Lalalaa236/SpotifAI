@@ -1,69 +1,51 @@
-from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+
 from .models import Song
 from .serializers import SongSerializer
-from users.models import User
+from artists.models import Artist
+from albums.models import Album
 
 class SongViewSet(viewsets.ModelViewSet):
     queryset = Song.objects.all()
     serializer_class = SongSerializer
 
-    def get_queryset(self):
-        playlist_id = self.request.query_params.get('playlist_id', None)
-
-        if playlist_id:
-            return Song.objects.filter(playlist_id=playlist_id)
-        return Song.objects.all()
-
-    @action(detail=False, methods=['get'])
-    def by_user(self, request):
-        username = request.query_params.get('username')
-
-        if username:
-            songs = Song.objects.filter(playlist__user__username=username)
-            serializer = SongSerializer(songs, many=True)
-            return Response({
-                "status": "success",
-                "data": serializer.data
-            })
-
-        return Response({
-            "status": "failed",
-            "message": "Username parameter is required"
-        }, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=True, methods=['get'])
+    def details(self, request, pk=None):
+        try:
+            song = self.get_object()
+            serializer = self.get_serializer(song)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Song.DoesNotExist:
+            return Response(
+                {"error": "Song not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
     @action(detail=False, methods=['get'])
-    def by_playlist(self, request):
-        playlist_name = request.query_params.get('playlist_name')
-
-        if playlist_name:
-            songs = Song.objects.filter(playlist__name=playlist_name)
-            serializer = SongSerializer(songs, many=True)
-            return Response({
-                "status": "success",
-                "data": serializer.data
-            })
-
-        return Response({
-            "status": "failed",
-            "message": "Playlist name parameter is required"
-        }, status=status.HTTP_400_BAD_REQUEST)
+    def find_song(self, request):
+        query = request.query_params.get('q', '')
+        songs = Song.objects.filter(title__icontains=query)
+        serializer = self.get_serializer(songs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
-    def by_genre(self, request):
-        genre = request.query_params.get('genre')
-
-        if genre:
-            songs = Song.objects.filter(genre=genre)
-            serializer = SongSerializer(songs, many=True)
-            return Response({
-                "status": "success",
-                "data": serializer.data
-            })
-
-        return Response({
-            "status": "failed",
-            "message": "Genre parameter is required"
-        }, status=status.HTTP_400_BAD_REQUEST)
+    def fetch_songs_by_artist(self, request):
+        artist_id = request.query_params.get('artist_id')
+        try:
+            # Direct query using the many-to-many relationship
+            songs = Song.objects.filter(artists__id=artist_id)
+            if not songs.exists():
+                return Response(
+                    {"error": "No songs found for the given artist."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            serializer = self.get_serializer(songs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

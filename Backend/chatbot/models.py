@@ -1,10 +1,29 @@
 from django.db import models
-from chathistory.models import ChatHistory
+from django.contrib.auth.models import User
+from songs.models import Song  # Import Song model
 
-class ChatBot(models.Model):
-    bot_id = models.AutoField(primary_key=True)
-    llm_model = models.CharField(max_length=255)
-    chatHistory = models.ForeignKey(ChatHistory, on_delete=models.CASCADE)
-
+class Conversation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conversations')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
     def __str__(self):
-        return f"ChatBot {self.bot_id}"
+        return f"Conversation with {self.user.username} on {self.created_at.strftime('%Y-%m-%d')}"
+
+class Message(models.Model):
+    ROLE_CHOICES = [
+        ('user', 'User'),
+        ('assistant', 'Assistant'),
+    ]
+    
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    recommended_songs = models.ManyToManyField(Song, blank=True, related_name='recommendations')
+    
+    class Meta:
+        ordering = ['timestamp']
+        
+    def __str__(self):
+        return f"{self.role}: {self.content}"
