@@ -13,6 +13,7 @@ api_v1_patterns = [
     path('', include('songs.urls')),
     path('', include('playlists.urls')),
     path('', include('genres.urls')),
+    path('', include('chatbot.urls')),
 ]
 
 schema_view = get_schema_view(
