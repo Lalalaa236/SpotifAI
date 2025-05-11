@@ -7,9 +7,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 
 // API imports
-import '../../apis/album_song_api.dart';
-import '../../apis/add_album_to_playlist_api.dart';
-import '../../apis/playlist_song_api.dart';
+import '../../apis/album_api/album_song_api.dart';
+import '../../apis/playlist_api/add_album_to_playlist_api.dart';
+import '../../apis/playlist_api/playlist_song_api.dart';
 
 // Bloc imports
 import '../../utils/app_bloc.dart';
@@ -175,6 +175,38 @@ class _AlbumDetailState extends State<AlbumDetail>
     });
   }
 
+  Future<void> _addSongToPlaylist(int playlistId, int songId) async {
+    try {
+      _logger.info(
+        'Adding song to playlist: playlistId=$playlistId, songId=$songId',
+      );
+      final result = await PlaylistSongApi.addSongToPlaylist(
+        playlistId,
+        songId,
+      );
+
+      if (!mounted) return;
+
+      if (result != null) {
+        _logger.info('Song added to playlist successfully!');
+
+        // Fetch updated playlists
+        final updatedPlaylists = List<Map<String, dynamic>>.from(
+          await PlaylistSongApi.getUserPlaylists(),
+        );
+
+        if (!mounted) return;
+        // Update playlists in the AppCubit
+        context.read<AppCubit>().setPlaylists(updatedPlaylists);
+      } else {
+        _logger.warning('Failed to add song to playlist.');
+      }
+    } catch (e, stackTrace) {
+      if (!mounted) return;
+      _logger.severe('Error adding song to playlist', e, stackTrace);
+    }
+  }
+
   Future<void> _addAlbumToPlaylist() async {
     try {
       final result = await AddAlbumToPlaylistApi.createPlaylistAndAddAlbum(
@@ -192,6 +224,7 @@ class _AlbumDetailState extends State<AlbumDetail>
           await PlaylistSongApi.getUserPlaylists(),
         );
 
+        if (!mounted) return;
         // Update playlists in the AppCubit
         context.read<AppCubit>().setPlaylists(updatedPlaylists);
       } else {
@@ -223,6 +256,7 @@ class _AlbumDetailState extends State<AlbumDetail>
           await PlaylistSongApi.getUserPlaylists(),
         );
 
+        if (!mounted) return;
         // Update playlists in the AppCubit
         context.read<AppCubit>().setPlaylists(updatedPlaylists);
       } else {
@@ -555,8 +589,6 @@ class _AlbumDetailState extends State<AlbumDetail>
                                         details.globalPosition,
                                       );
 
-                                      if (!mounted)
-                                        return; // Ensure the widget is still mounted
                                       showMenu(
                                         context: context,
                                         position: RelativeRect.fromLTRB(
@@ -601,31 +633,12 @@ class _AlbumDetailState extends State<AlbumDetail>
                                                                   playlist['name'],
                                                                 ),
                                                                 onTap: () async {
-                                                                  await PlaylistSongApi.addSongToPlaylist(
+                                                                  _addSongToPlaylist(
                                                                     playlist['id']
                                                                         as int,
                                                                     song.id,
                                                                   );
-                                                                  // Update the playlist in the AppCubit
-                                                                  final updatedPlaylists =
-                                                                      widget.playlists.map((p,) {
-                                                                        if (p['id'] == playlist['id']) {
-                                                                          final updatedSongs = List<Map<String, dynamic>>.from(
-                                                                            p['songs'] ?? [],
-                                                                          )..add(
-                                                                            song.toJson(),
-                                                                          );
-                                                                          return {
-                                                                            ...p,
-                                                                            'songs': updatedSongs,
-                                                                          };
-                                                                        }
-                                                                        return p;
-                                                                      }).toList();
 
-                                                                  context.read<AppCubit>().setPlaylists(
-                                                                    updatedPlaylists,
-                                                                  );
                                                                   Navigator.of(
                                                                     context,
                                                                   ).pop(); // Close the dialog

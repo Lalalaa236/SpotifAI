@@ -9,8 +9,8 @@ import '../../components/header_footer/side_bar.dart';
 import '../../components/main_widget/home.dart';
 
 // API imports
-import '../../apis/album_song_api.dart';
-import '../../apis/playlist_song_api.dart';
+import '../../apis/album_api/album_song_api.dart';
+import '../../apis/playlist_api/playlist_song_api.dart';
 
 // Bloc imports
 import '../../utils/app_bloc.dart';

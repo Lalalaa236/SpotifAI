@@ -60,7 +60,6 @@ class AuthApi extends BaseApi {
     try {
       // Step 1: Fetch CSRF token and cookies from login page
       final response = await DioClient.instance.get('/v1/accounts/login/');
-      print('Initial login page headers: ${response.headers}');
       final csrfData = DioClient.getCsrfTokenAndCookies(response);
       final csrfToken = csrfData['csrfToken']!;
       final cookies = csrfData['cookies']!;
@@ -79,7 +78,6 @@ class AuthApi extends BaseApi {
       // Step 4: On success, save new cookies and CSRF token from Set-Cookie
       if (loginResponse.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
-        print('Login response headers: ${loginResponse.headers}');
         final updatedCsrfData = DioClient.getCsrfTokenAndCookies(loginResponse);
         await prefs.setString('cookies', updatedCsrfData['cookies']!);
         await prefs.setString('csrf_token', updatedCsrfData['csrfToken']!);

@@ -9,6 +9,7 @@ class CustomTextField extends StatelessWidget {
   final double width;
   final EdgeInsetsGeometry? padding;
   final Function(String)? onChanged;
+  final FocusNode? focusNode;
 
   const CustomTextField({
     super.key,
@@ -19,6 +20,7 @@ class CustomTextField extends StatelessWidget {
     this.width = AppConstants.textFieldWidth,
     this.padding,
     this.onChanged,
+    this.focusNode,
   });
 
   @override
@@ -43,6 +45,7 @@ class CustomTextField extends StatelessWidget {
               controller: controller,
               obscureText: obscureText,
               onChanged: onChanged,
+              focusNode: focusNode,
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.black,

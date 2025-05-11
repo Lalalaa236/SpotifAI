@@ -1,5 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dio_client.dart';
+import '../dio_client.dart';
 
 class AlbumSongApi {
   static Future<List<dynamic>> getAllAlbums() async {

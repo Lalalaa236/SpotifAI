@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dio_client.dart';
+import '../dio_client.dart';
 
-class FindSongApi {
+class FindArtistAndFetchSongsApi {
   static Future<void> _setCsrfTokenAndCookies() async {
     final prefs = await SharedPreferences.getInstance();
     final csrfToken = prefs.getString('csrf_token');
@@ -17,18 +17,33 @@ class FindSongApi {
     }
   }
 
-  static Future<List<dynamic>> findSongByName(String songName) async {
+  static Future<List<dynamic>> findArtistByName(String artistName) async {
     try {
       await _setCsrfTokenAndCookies();
 
       final response = await DioClient.instance.get(
-        '/v1/songs/find_song/',
-        queryParameters: {'q': songName},
+        '/v1/artists/find_artist/',
+        queryParameters: {'q': artistName},
       );
 
       return response.data as List<dynamic>;
     } catch (e) {
-      throw Exception('Error finding song by name: $e');
+      throw Exception('Error finding artist by name: $e');
+    }
+  }
+
+  static Future<List<dynamic>> fetchSongsByArtist(int artistId) async {
+    try {
+      await _setCsrfTokenAndCookies();
+
+      final response = await DioClient.instance.get(
+        '/v1/songs/fetch_songs_by_artist/',
+        queryParameters: {'artist_id': artistId},
+      );
+
+      return response.data as List<dynamic>;
+    } catch (e) {
+      throw Exception('Error fetching songs by artist: $e');
     }
   }
 }

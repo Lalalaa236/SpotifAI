@@ -1,5 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dio_client.dart';
+import '../dio_client.dart';
 
 class PlaylistSongApi {
   /// Fetch all playlists of the current user
@@ -44,7 +44,7 @@ class PlaylistSongApi {
     }
   }
 
-  static Future<void> addSongToPlaylist(int playlistId, int songId) async {
+  static Future<dynamic> addSongToPlaylist(int playlistId, int songId) async {
     try {
       await _setCsrfTokenAndCookies();
 
@@ -57,7 +57,7 @@ class PlaylistSongApi {
 
       if (response.statusCode == 200) {
         // Successfully added the song
-        return;
+        return response.data;
       } else if (response.statusCode == 400) {
         throw Exception('Song already in playlist or invalid request');
       } else if (response.statusCode == 404) {
