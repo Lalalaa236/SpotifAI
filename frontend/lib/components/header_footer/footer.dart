@@ -59,16 +59,30 @@ class _FooterState extends State<Footer> {
   void didUpdateWidget(covariant Footer oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    final hasNewPlaylist = oldWidget.songs != widget.songs;
+    // Check if the playlists are completely different
+    final hasNewPlaylist = !_isSubset(oldWidget.songs, widget.songs);
 
     if (hasNewPlaylist && widget.songs.isNotEmpty) {
-      currentIndex = 0;
-      _playAudio(); // autoplay new audio
+      currentIndex = 0; // Reset to the first song in the new playlist
+      _playAudio(); // Autoplay the new audio
     } else if (widget.songs.isEmpty) {
       setState(() {
-        isPlaying = false; // stop playing if no songs
+        isPlaying = false; // Stop playing if no songs
       });
     }
+  }
+
+  // Helper method to check if the old playlist is a subset of the new playlist
+  bool _isSubset(List<Song> oldSongs, List<Song> newSongs) {
+    if (oldSongs.length > newSongs.length) return false;
+
+    for (int i = 0; i < oldSongs.length; i++) {
+      if (oldSongs[i].audioSource != newSongs[i].audioSource) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   Future<void> _playAudio() async {

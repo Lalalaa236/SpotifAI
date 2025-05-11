@@ -134,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-      bottomNavigationBar: Footer(songs: [...state.songs]),
+      bottomNavigationBar: Footer(songs: state.songs),
     );
   }
 }
