@@ -1,19 +1,32 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Song {
+  final int id;
   final String title;
   final String artist;
   final String albumArt;
   final String audioSource;
-  final String duration; // Add duration field
+  final String duration;
 
   Song({
+    required this.id,
     required this.title,
     required this.artist,
     required this.albumArt,
     required this.audioSource,
     required this.duration,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'artist': artist,
+      'albumArt': albumArt,
+      'audioSource': audioSource,
+      'duration': duration,
+    };
+  }
 }
 
 class AppState {
@@ -62,4 +75,12 @@ class AppCubit extends Cubit<AppState> {
 
   void setPlaylists(List<Map<String, dynamic>> playlists) =>
       emit(state.copyWith(playlists: playlists));
+
+  void removePlaylist(int playlistId) {
+    final updatedPlaylists =
+        state.playlists
+            .where((playlist) => playlist['id'] != playlistId)
+            .toList();
+    emit(state.copyWith(playlists: updatedPlaylists));
+  }
 }

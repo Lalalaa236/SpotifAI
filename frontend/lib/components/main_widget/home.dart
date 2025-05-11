@@ -55,7 +55,6 @@ class _HomeState extends State<Home> {
                 GridView.builder(
                   shrinkWrap: true,
                   itemCount: libraryItems.length,
-                  physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
                     childAspectRatio: 4,
@@ -70,9 +69,7 @@ class _HomeState extends State<Home> {
                         widget.onNavigate(
                           PlaylistDetail(
                             playlist: item,
-                            onPlayAlbum:
-                                context.read<AppCubit>().setFooterSongs,
-                            onAddToQueue: context.read<AppCubit>().addToQueue,
+                            onNavigate: widget.onNavigate,
                           ),
                         );
                       },
@@ -183,10 +180,10 @@ class _HomeState extends State<Home> {
   ) {
     return SizedBox(
       height: 200,
-      child: ListView.separated(
+      child: ListView.builder(
+        physics: SlowScrollPhysics(),
         scrollDirection: Axis.horizontal,
         itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 25),
         itemBuilder: (context, index) {
           final item = items[index];
           return GestureDetector(
@@ -200,7 +197,8 @@ class _HomeState extends State<Home> {
                 ),
               );
             },
-            child: SizedBox(
+            child: Container(
+              margin: const EdgeInsets.only(right: 25),
               width: 150,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,5 +236,20 @@ class _HomeState extends State<Home> {
         },
       ),
     );
+  }
+}
+
+class SlowScrollPhysics extends ClampingScrollPhysics {
+  const SlowScrollPhysics({super.parent});
+
+  @override
+  double applyPhysicsToUserOffset(ScrollMetrics position, double offset) {
+    // Reduce the offset to slow down the scrolling speed
+    return super.applyPhysicsToUserOffset(position, offset * 0.5);
+  }
+
+  @override
+  SlowScrollPhysics applyTo(ScrollPhysics? ancestor) {
+    return SlowScrollPhysics(parent: buildParent(ancestor));
   }
 }

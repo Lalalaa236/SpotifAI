@@ -4,10 +4,12 @@ import 'package:just_audio/just_audio.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:async';
 
 // API imports
 import '../../apis/album_song_api.dart';
 import '../../apis/add_album_to_playlist_api.dart';
+import '../../apis/playlist_song_api.dart';
 
 // Bloc imports
 import '../../utils/app_bloc.dart';
@@ -42,7 +44,21 @@ class _AlbumDetailState extends State<AlbumDetail>
   void initState() {
     super.initState();
     _audioPlayer = AudioPlayer();
-
+    _audioPlayer.playerStateStream.listen(
+      (playerState) {
+        final processingState = playerState.processingState;
+        if (processingState == ProcessingState.buffering) {
+          debugPrint('Buffering...');
+        } else if (processingState == ProcessingState.ready) {
+          debugPrint('Ready to play');
+        } else if (processingState == ProcessingState.completed) {
+          debugPrint('Playback completed');
+        }
+      },
+      onError: (error, stackTrace) {
+        debugPrint('Player state error: $error');
+      },
+    );
     _initAnimation();
     _fetchSongs();
     _extractDominantColor();
@@ -79,8 +95,13 @@ class _AlbumDetailState extends State<AlbumDetail>
         return '--:--';
       }
 
-      // Set the URL and fetch the duration
-      await _audioPlayer.setUrl(url);
+      // Set the URL with a timeout
+      await Future.any([
+        _audioPlayer.setUrl(url),
+        Future.delayed(const Duration(seconds: 10), () {
+          throw TimeoutException('Loading audio file timed out');
+        }),
+      ]);
 
       // Wait until the duration is available
       Duration? duration = await _audioPlayer.durationStream.firstWhere(
@@ -92,7 +113,10 @@ class _AlbumDetailState extends State<AlbumDetail>
       final minutes = duration!.inMinutes;
       final seconds = duration.inSeconds % 60;
       return '$minutes:${seconds.toString().padLeft(2, '0')}';
-    } catch (e, stackTrace) {
+    } on TimeoutException {
+      _logger.warning('Timeout while loading audio file: $url');
+      return '--:--';
+    } on Exception catch (e, stackTrace) {
       _logger.severe('Error fetching song duration from $url', e, stackTrace);
       return '--:--';
     }
@@ -117,6 +141,7 @@ class _AlbumDetailState extends State<AlbumDetail>
           ); // Fetch duration here
 
           return Song(
+            id: songData['id'],
             title: songData['title'] as String,
             artist: artistNames,
             albumArt: songData['cover_image'] as String? ?? '',
@@ -156,12 +181,24 @@ class _AlbumDetailState extends State<AlbumDetail>
         widget.album['title'],
         widget.album['id'],
       );
+
+      if (!mounted) return;
+
       if (result != null) {
         _logger.info('Album added to playlist successfully!');
+
+        // Fetch updated playlists
+        final updatedPlaylists = List<Map<String, dynamic>>.from(
+          await PlaylistSongApi.getUserPlaylists(),
+        );
+
+        // Update playlists in the AppCubit
+        context.read<AppCubit>().setPlaylists(updatedPlaylists);
       } else {
         _logger.warning('Failed to add album to playlist.');
       }
     } catch (e, stackTrace) {
+      if (!mounted) return;
       _logger.severe('Error adding album to playlist', e, stackTrace);
     }
   }
@@ -175,14 +212,24 @@ class _AlbumDetailState extends State<AlbumDetail>
         playlistId,
         widget.album['id'] as int,
       );
-      if (!mounted) return; // Ensure the widget is still mounted
+
+      if (!mounted) return;
+
       if (result != null) {
         _logger.info('Album added to existing playlist successfully!');
+
+        // Fetch updated playlists
+        final updatedPlaylists = List<Map<String, dynamic>>.from(
+          await PlaylistSongApi.getUserPlaylists(),
+        );
+
+        // Update playlists in the AppCubit
+        context.read<AppCubit>().setPlaylists(updatedPlaylists);
       } else {
         _logger.warning('Failed to add album to existing playlist.');
       }
     } catch (e, stackTrace) {
-      if (!mounted) return; // Ensure the widget is still mounted
+      if (!mounted) return;
       _logger.severe('Error adding album to existing playlist', e, stackTrace);
     }
   }
@@ -366,10 +413,7 @@ class _AlbumDetailState extends State<AlbumDetail>
                                   ),
                                   const SizedBox(width: 12),
                                   PopupMenuButton<String>(
-                                    offset: const Offset(
-                                      0,
-                                      50,
-                                    ), // Moves the menu 50 pixels below the button
+                                    offset: const Offset(10, 70),
                                     icon: SvgPicture.asset(
                                       'assets/svg/option.svg',
                                       height: 50,
@@ -392,48 +436,64 @@ class _AlbumDetailState extends State<AlbumDetail>
                                             child: Text('Add to queue'),
                                           ),
                                           PopupMenuItem(
-                                            child: Row(
-                                              children: [
-                                                const Text('Add to playlist'),
-                                                const Spacer(),
-                                                const Icon(Icons.arrow_right),
-                                              ],
-                                            ),
-                                            onTap: () {
-                                              // Show a nested popup menu for playlists
-                                              final overlay =
-                                                  Overlay.of(context).context
-                                                          .findRenderObject()
-                                                      as RenderBox;
-                                              final offset = overlay
-                                                  .localToGlobal(Offset.zero);
-
-                                              showMenu(
-                                                context: context,
-                                                position: RelativeRect.fromLTRB(
-                                                  offset.dx +
-                                                      200, // Adjust the x-offset to position the nested menu
-                                                  offset.dy,
-                                                  offset.dx,
-                                                  offset.dy,
-                                                ),
-                                                items:
-                                                    widget.playlists.map((
-                                                      playlist,
-                                                    ) {
-                                                      return PopupMenuItem(
-                                                        child: Text(
-                                                          playlist['name'],
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (
+                                                    BuildContext context,
+                                                  ) {
+                                                    return AlertDialog(
+                                                      title: const Text(
+                                                        'Select a Playlist',
+                                                      ),
+                                                      content: SizedBox(
+                                                        width: 300,
+                                                        height: 300,
+                                                        child: ListView(
+                                                          shrinkWrap: true,
+                                                          children:
+                                                              widget.playlists.map((
+                                                                playlist,
+                                                              ) {
+                                                                return ListTile(
+                                                                  title: Text(
+                                                                    playlist['name'],
+                                                                  ),
+                                                                  onTap: () {
+                                                                    Navigator.of(
+                                                                      context,
+                                                                    ).pop(); // Close the dialog
+                                                                    _addToExistingPlaylist(
+                                                                      playlist['id'],
+                                                                    ); // Add to playlist
+                                                                  },
+                                                                );
+                                                              }).toList(),
                                                         ),
-                                                        onTap: () {
-                                                          _addToExistingPlaylist(
-                                                            playlist['id'],
-                                                          );
-                                                        },
-                                                      );
-                                                    }).toList(),
-                                              );
-                                            },
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () {
+                                                            Navigator.of(
+                                                              context,
+                                                            ).pop(); // Close the dialog
+                                                          },
+                                                          child: const Text(
+                                                            'Cancel',
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              child: Row(
+                                                children: const [
+                                                  Text('Add to playlist'),
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                         ],
                                   ),
@@ -509,17 +569,87 @@ class _AlbumDetailState extends State<AlbumDetail>
                                           PopupMenuItem(
                                             child: const Text("Add to queue"),
                                             onTap: () {
-                                              Future.delayed(Duration.zero, () {
-                                                if (!mounted)
-                                                  return; // Ensure the widget is still mounted
-                                                context
-                                                    .read<AppCubit>()
-                                                    .addToQueue([song]);
-                                              });
+                                              // Ensure the widget is still mounted
+                                              context
+                                                  .read<AppCubit>()
+                                                  .addToQueue([song]);
                                             },
                                           ),
-                                          const PopupMenuItem(
-                                            child: Text("Add to playlist"),
+                                          PopupMenuItem(
+                                            child: const Text(
+                                              "Add to playlist",
+                                            ),
+                                            onTap: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) {
+                                                  return AlertDialog(
+                                                    title: const Text(
+                                                      'Select a Playlist',
+                                                    ),
+                                                    content: SizedBox(
+                                                      width: 300,
+                                                      height: 300,
+                                                      child: ListView(
+                                                        shrinkWrap: true,
+                                                        children:
+                                                            widget.playlists.map((
+                                                              playlist,
+                                                            ) {
+                                                              return ListTile(
+                                                                title: Text(
+                                                                  playlist['name'],
+                                                                ),
+                                                                onTap: () async {
+                                                                  await PlaylistSongApi.addSongToPlaylist(
+                                                                    playlist['id']
+                                                                        as int,
+                                                                    song.id,
+                                                                  );
+                                                                  // Update the playlist in the AppCubit
+                                                                  final updatedPlaylists =
+                                                                      widget.playlists.map((p,) {
+                                                                        if (p['id'] == playlist['id']) {
+                                                                          final updatedSongs = List<Map<String, dynamic>>.from(
+                                                                            p['songs'] ?? [],
+                                                                          )..add(
+                                                                            song.toJson(),
+                                                                          );
+                                                                          return {
+                                                                            ...p,
+                                                                            'songs': updatedSongs,
+                                                                          };
+                                                                        }
+                                                                        return p;
+                                                                      }).toList();
+
+                                                                  context.read<AppCubit>().setPlaylists(
+                                                                    updatedPlaylists,
+                                                                  );
+                                                                  Navigator.of(
+                                                                    context,
+                                                                  ).pop(); // Close the dialog
+                                                                },
+                                                              );
+                                                            }).toList(),
+                                                      ),
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop(); // Close the dialog
+                                                        },
+                                                        child: const Text(
+                                                          'Cancel',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
                                           ),
                                         ],
                                       );
