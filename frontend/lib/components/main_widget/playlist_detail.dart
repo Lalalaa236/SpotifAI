@@ -323,23 +323,25 @@ class _PlaylistDetailState extends State<PlaylistDetail>
                                 );
 
                                 if (confirm == true) {
+                                  // Capture values before async gap
+                                  final playlistId =
+                                      widget.playlist['id'] as int;
+                                  final onNavigate = widget.onNavigate;
+                                  if (!mounted) return;
                                   try {
-                                    // Call API to delete the playlist
                                     await PlaylistSongApi.deletePlaylist(
-                                      widget.playlist['id'] as int,
+                                      playlistId,
                                     );
-
-                                    // Update the UI by navigating back or removing the playlist
+                                    if (!mounted) return;
                                     context.read<AppCubit>().removePlaylist(
-                                      widget.playlist['id'] as int,
+                                      playlistId,
                                     );
                                     context.read<AppCubit>().setIsHome(true);
-                                    widget.onNavigate(
-                                      Home(onNavigate: widget.onNavigate),
-                                    );
+                                    onNavigate(Home(onNavigate: onNavigate));
                                   } catch (e) {
-                                    // Handle errors
-                                    debugPrint('Error deleting playlist: $e');
+                                    if (mounted) {
+                                      debugPrint('Error deleting playlist: $e');
+                                    }
                                   }
                                 }
                               }

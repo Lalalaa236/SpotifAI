@@ -1,9 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../components/social_login_button.dart';
-import '../components/custom_text_field.dart';
-import '../components/custom_button.dart';
+import '../components/login/social_login_button.dart';
+import '../components/login/custom_text_field.dart';
+import '../components/login/custom_button.dart';
 import '../services/google_auth_service.dart';
 import '../services/facebook_auth_service.dart';
 import '../services/apple_auth_service.dart';

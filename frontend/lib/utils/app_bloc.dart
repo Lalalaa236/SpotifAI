@@ -34,12 +34,14 @@ class AppState {
   final List<Map<String, dynamic>> playlists;
   final List<Song> songs;
   final bool isHome;
+  final bool isChatting;
 
   AppState({
     this.albums = const [],
     this.playlists = const [],
     this.songs = const [],
     this.isHome = true,
+    this.isChatting = false,
   });
 
   AppState copyWith({
@@ -47,12 +49,14 @@ class AppState {
     List<Map<String, dynamic>>? playlists,
     List<Song>? songs,
     bool? isHome,
+    bool? isChatting,
   }) {
     return AppState(
       albums: albums ?? this.albums,
       playlists: playlists ?? this.playlists,
       songs: songs ?? this.songs,
       isHome: isHome ?? this.isHome,
+      isChatting: isChatting ?? this.isChatting,
     );
   }
 }
@@ -61,6 +65,8 @@ class AppCubit extends Cubit<AppState> {
   AppCubit() : super(AppState());
 
   void setIsHome(bool value) => emit(state.copyWith(isHome: value));
+
+  void setIsChatting() => emit(state.copyWith(isChatting: !state.isChatting));
 
   void setFooterSongs(List<Song> newSongs) {
     emit(state.copyWith(songs: newSongs));

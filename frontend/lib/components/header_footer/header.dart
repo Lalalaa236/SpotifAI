@@ -9,7 +9,7 @@ import '../main_widget/home.dart';
 
 import '../../utils/app_bloc.dart';
 
-class Header extends StatefulWidget {
+class Header extends StatelessWidget {
   final VoidCallback? onUndo;
   final VoidCallback? onRedo;
   final bool canUndo;
@@ -26,11 +26,6 @@ class Header extends StatefulWidget {
     required this.onNavigate,
   });
 
-  @override
-  State<Header> createState() => _HeaderState();
-}
-
-class _HeaderState extends State<Header> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AppCubit, AppState>(
@@ -62,10 +57,10 @@ class _HeaderState extends State<Header> {
                     ),
                     const SizedBox(width: 40),
                     IconButton(
-                      onPressed: widget.canUndo ? widget.onUndo : null,
+                      onPressed: canUndo ? onUndo : null,
                       icon: Icon(Icons.arrow_back_ios),
                       color:
-                          widget.canUndo
+                          canUndo
                               ? colorScheme.onSurface
                               : colorScheme.onSurface.withAlpha(
                                 (0.6 * 0xFF).round(),
@@ -75,10 +70,10 @@ class _HeaderState extends State<Header> {
                     ),
                     const SizedBox(width: 8.0),
                     IconButton(
-                      onPressed: widget.canRedo ? widget.onRedo : null,
+                      onPressed: canRedo ? onRedo : null,
                       icon: Icon(Icons.arrow_forward_ios),
                       color:
-                          widget.canRedo
+                          canRedo
                               ? colorScheme.onSurface
                               : colorScheme.onSurface.withAlpha(
                                 (0.6 * 0xFF).round(),
@@ -95,7 +90,7 @@ class _HeaderState extends State<Header> {
                     GestureDetector(
                       onTap: () {
                         context.read<AppCubit>().setIsHome(true);
-                        widget.onNavigate(Home(onNavigate: widget.onNavigate));
+                        onNavigate(Home(onNavigate: onNavigate));
                       },
                       child: Container(
                         width: 50,
@@ -166,6 +161,16 @@ class _HeaderState extends State<Header> {
                           ),
                         ],
                       ),
+                    ),
+                    const SizedBox(width: 10.0),
+                    IconButton(
+                      onPressed: context.read<AppCubit>().setIsChatting,
+                      icon: Icon(Icons.mic),
+                      color: colorScheme.onSurface.withAlpha(
+                        (0.6 * 0xFF).round(),
+                      ),
+                      iconSize: 22,
+                      tooltip: 'Voice Search',
                     ),
                   ],
                 ),

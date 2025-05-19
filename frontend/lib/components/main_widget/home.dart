@@ -41,89 +41,107 @@ class _HomeState extends State<Home> {
               ),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: ListView(
-              children: [
-                Row(
-                  children: [
-                    _buildTag("All"),
-                    _buildTag("Music"),
-                    _buildTag("Podcasts"),
-                  ],
-                ),
-                const SizedBox(height: 20),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // If the width is less than 500, use 1 column
+                // If width is between 500 and 700, use 2 columns
+                // Otherwise, use 4 columns
+                int crossAxisCount = 4;
+                double childAspectRatio = 4;
+                if (constraints.maxWidth < 500) {
+                  crossAxisCount = 1;
+                  childAspectRatio = 8;
+                } else if (constraints.maxWidth < 700) {
+                  crossAxisCount = 2;
+                  childAspectRatio = 6;
+                }
 
-                GridView.builder(
-                  shrinkWrap: true,
-                  itemCount: libraryItems.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    childAspectRatio: 4,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemBuilder: (context, index) {
-                    final item = libraryItems[index];
-                    return GestureDetector(
-                      onTap: () {
-                        context.read<AppCubit>().setIsHome(false);
-                        widget.onNavigate(
-                          PlaylistDetail(
-                            playlist: item,
-                            onNavigate: widget.onNavigate,
+                return ListView(
+                  children: [
+                    Row(
+                      children: [
+                        _buildTag("All"),
+                        _buildTag("Music"),
+                        _buildTag("Podcasts"),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: libraryItems.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: childAspectRatio,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                      ),
+                      itemBuilder: (context, index) {
+                        final item = libraryItems[index];
+                        return GestureDetector(
+                          onTap: () {
+                            context.read<AppCubit>().setIsHome(false);
+                            widget.onNavigate(
+                              PlaylistDetail(
+                                playlist: item,
+                                onNavigate: widget.onNavigate,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white10,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final itemHeight = constraints.maxHeight;
+                                    return ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(8),
+                                        bottomLeft: Radius.circular(8),
+                                      ),
+                                      child: Image.network(
+                                        item['cover_image'] as String,
+                                        width: itemHeight,
+                                        height: itemHeight,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    item['name']!,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white10,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(8),
-                                bottomLeft: Radius.circular(8),
-                              ),
-                              child: Image.network(
-                                item['cover_image'] as String,
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                item['name']!,
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 30),
-
-                // Made For Hung
-                _buildSectionTitle("Made For Hưng"),
-                const SizedBox(height: 12),
-                _buildAlbumScroll(context, state.albums, state.playlists),
-
-                const SizedBox(height: 30),
-
-                // Discover Picks For You
-                _buildSectionTitle("Discover picks for you"),
-                const SizedBox(height: 12),
-                _buildAlbumScroll(context, state.albums, state.playlists),
-              ],
+                    ),
+                    const SizedBox(height: 30),
+                    // Made For Hung
+                    _buildSectionTitle("Made For Hưng"),
+                    const SizedBox(height: 12),
+                    _buildAlbumScroll(context, state.albums, state.playlists),
+                    const SizedBox(height: 30),
+                    // Discover Picks For You
+                    _buildSectionTitle("Discover picks for you"),
+                    const SizedBox(height: 12),
+                    _buildAlbumScroll(context, state.albums, state.playlists),
+                  ],
+                );
+              },
             ),
           ),
         );

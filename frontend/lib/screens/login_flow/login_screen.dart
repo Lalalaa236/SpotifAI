@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       _showErrorSnackBar('Error: ${e.toString()}');
     } finally {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -81,6 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       _showErrorSnackBar('Error: ${e.toString()}');
     } finally {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -183,6 +185,3 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-
-
-

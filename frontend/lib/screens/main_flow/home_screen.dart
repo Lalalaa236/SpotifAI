@@ -7,6 +7,7 @@ import '../../components/header_footer/header.dart';
 import '../../components/header_footer/footer.dart';
 import '../../components/header_footer/side_bar.dart';
 import '../../components/main_widget/home.dart';
+import '../../components/main_widget/chat_bot.dart';
 
 // API imports
 import '../../apis/album_api/album_song_api.dart';
@@ -131,6 +132,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+                    if (state.isChatting) ...[
+                      const SizedBox(width: 8.0),
+                      ChatBot(),
+                    ],
                   ],
                 ),
               ),
