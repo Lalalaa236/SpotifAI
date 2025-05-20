@@ -29,12 +29,21 @@ class Song {
   }
 }
 
+class Message {
+  final String text;
+  final bool isUser;
+  final List<Song>? songs;
+  Message(this.text, this.isUser, {this.songs});
+}
+
 class AppState {
   final List<Map<String, dynamic>> albums;
   final List<Map<String, dynamic>> playlists;
   final List<Song> songs;
   final bool isHome;
   final bool isChatting;
+  final List<Message> chatMessages;
+  final String? conversationId;
 
   AppState({
     this.albums = const [],
@@ -42,6 +51,8 @@ class AppState {
     this.songs = const [],
     this.isHome = true,
     this.isChatting = false,
+    this.chatMessages = const [],
+    this.conversationId,
   });
 
   AppState copyWith({
@@ -50,6 +61,8 @@ class AppState {
     List<Song>? songs,
     bool? isHome,
     bool? isChatting,
+    List<Message>? chatMessages,
+    String? conversationId,
   }) {
     return AppState(
       albums: albums ?? this.albums,
@@ -57,6 +70,8 @@ class AppState {
       songs: songs ?? this.songs,
       isHome: isHome ?? this.isHome,
       isChatting: isChatting ?? this.isChatting,
+      chatMessages: chatMessages ?? this.chatMessages,
+      conversationId: conversationId ?? this.conversationId,
     );
   }
 }
@@ -88,5 +103,22 @@ class AppCubit extends Cubit<AppState> {
             .where((playlist) => playlist['id'] != playlistId)
             .toList();
     emit(state.copyWith(playlists: updatedPlaylists));
+  }
+
+  void addChatMessage(Message message) {
+    // If the message contains songs, update both chatMessages and songs in AppState
+    if (message.songs != null && message.songs!.isNotEmpty) {
+      emit(state.copyWith(chatMessages: [...state.chatMessages, message]));
+    } else {
+      emit(state.copyWith(chatMessages: [...state.chatMessages, message]));
+    }
+  }
+
+  void setConversationId(String? id) {
+    emit(state.copyWith(conversationId: id));
+  }
+
+  void clearChat() {
+    emit(state.copyWith(chatMessages: [], conversationId: null));
   }
 }

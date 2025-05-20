@@ -53,6 +53,10 @@ class _FooterState extends State<Footer> {
     });
 
     _audioPlayer.setVolume(volume);
+
+    if (widget.songs.isNotEmpty) {
+      _playAudio();
+    }
   }
 
   @override
@@ -293,7 +297,7 @@ class _FooterState extends State<Footer> {
                       size: 36,
                       color: Colors.white,
                     ),
-                    onPressed: togglePlayPause,
+                    onPressed: widget.songs.isEmpty ? null : togglePlayPause,
                   ),
                   IconButton(
                     icon: const Icon(Icons.skip_next, color: Colors.white),
