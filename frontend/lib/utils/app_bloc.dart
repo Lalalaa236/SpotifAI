@@ -16,17 +16,6 @@ class Song {
     required this.audioSource,
     required this.duration,
   });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'artist': artist,
-      'albumArt': albumArt,
-      'audioSource': audioSource,
-      'duration': duration,
-    };
-  }
 }
 
 class Message {
@@ -106,12 +95,7 @@ class AppCubit extends Cubit<AppState> {
   }
 
   void addChatMessage(Message message) {
-    // If the message contains songs, update both chatMessages and songs in AppState
-    if (message.songs != null && message.songs!.isNotEmpty) {
-      emit(state.copyWith(chatMessages: [...state.chatMessages, message]));
-    } else {
-      emit(state.copyWith(chatMessages: [...state.chatMessages, message]));
-    }
+    emit(state.copyWith(chatMessages: [...state.chatMessages, message]));
   }
 
   void setConversationId(String? id) {
