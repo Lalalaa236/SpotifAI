@@ -32,6 +32,9 @@ class Header extends StatelessWidget {
     required this.onNavigate,
   });
 
+  static final TextEditingController _searchController =
+      TextEditingController();
+
   Future<void> _handleSearch(String value) async {
     if (value.trim().isEmpty) return;
     final artists = await FindArtistAndFetchSongsApi.findArtistByName(
@@ -74,7 +77,13 @@ class Header extends StatelessWidget {
                     ),
                     const SizedBox(width: 40),
                     IconButton(
-                      onPressed: canUndo ? onUndo : null,
+                      onPressed:
+                          canUndo
+                              ? () {
+                                onUndo!();
+                                _searchController.clear();
+                              }
+                              : null,
                       icon: Icon(Icons.arrow_back_ios),
                       color:
                           canUndo
@@ -87,7 +96,13 @@ class Header extends StatelessWidget {
                     ),
                     const SizedBox(width: 8.0),
                     IconButton(
-                      onPressed: canRedo ? onRedo : null,
+                      onPressed:
+                          canRedo
+                              ? () {
+                                onRedo!();
+                                _searchController.clear();
+                              }
+                              : null,
                       icon: Icon(Icons.arrow_forward_ios),
                       color:
                           canRedo
@@ -108,6 +123,7 @@ class Header extends StatelessWidget {
                       onTap: () {
                         context.read<AppCubit>().setIsHome(true);
                         onNavigate(Home(onNavigate: onNavigate));
+                        _searchController.clear();
                       },
                       child: Container(
                         width: 50,
@@ -156,6 +172,7 @@ class Header extends StatelessWidget {
                           SizedBox(
                             width: 400,
                             child: TextField(
+                              controller: _searchController,
                               decoration: InputDecoration(
                                 hintText: 'What do you want to play?',
                                 hintStyle: TextStyle(
