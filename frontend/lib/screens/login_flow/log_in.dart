@@ -214,7 +214,7 @@ class _LogInWidgetState extends State<LogInWidget> {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: 'Sign up for Spotify',
+                                    text: 'Sign up for SpotifAI',
                                     style: textTheme.bodyMedium?.copyWith(
                                       decoration: TextDecoration.underline,
                                       color: colorScheme.onSurface,

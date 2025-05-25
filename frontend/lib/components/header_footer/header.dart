@@ -4,9 +4,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+// API imports
+import '../../apis/songs_api/find_artist_and_fetch_songs_api.dart';
+import '../../apis/songs_api/find_song_api.dart';
+
 // Widget imports
+import '../main_widget/search_result.dart';
 import '../main_widget/home.dart';
 
+// Bloc imports
 import '../../utils/app_bloc.dart';
 
 class Header extends StatelessWidget {
@@ -25,6 +31,17 @@ class Header extends StatelessWidget {
     this.canRedo = false,
     required this.onNavigate,
   });
+
+  Future<void> _handleSearch(String value) async {
+    if (value.trim().isEmpty) return;
+    final artists = await FindArtistAndFetchSongsApi.findArtistByName(
+      value.trim(),
+    );
+    final songs = await FindSongApi.findSongByName(value.trim());
+
+    // Use the onNavigate callback to show SearchResult
+    onNavigate(SearchResult(artists: artists, songs: songs));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +174,7 @@ class Header extends StatelessWidget {
                                 color: textTheme.bodyLarge!.color,
                                 fontSize: 16,
                               ),
+                              onSubmitted: _handleSearch,
                             ),
                           ),
                         ],
