@@ -1,5 +1,3 @@
----
-
 # 🎵 SpotifAI
 
 **SpotifAI** is a smart music platform that integrates music streaming with a powerful chatbot experience. The app is built with a modern **Flutter** frontend and a **Django** backend, designed to provide users with personalized, interactive, and conversational music recommendations.
