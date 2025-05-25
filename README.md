@@ -41,7 +41,7 @@ SpotifAI/
 * Flutter SDK 3.x
 * PostgreSQL
 * Dart SDK
-* Android Studio
+* Visual Studio
 
 ---
 
