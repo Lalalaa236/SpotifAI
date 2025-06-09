@@ -85,15 +85,13 @@ class MyApp extends StatelessWidget {
         colorScheme: const ColorScheme(
           brightness: Brightness.dark,
           primary: AppColors.primary,
-          // ignore: deprecated_member_use
-          background: AppColors.background,
-          // ignore: deprecated_member_use
-          onBackground: AppColors.textPrimary,
           onPrimary: AppColors.textPrimary,
           secondary: AppColors.iconGray,
           onSecondary: AppColors.textPrimary,
           surface: AppColors.surface,
           onSurface: AppColors.textPrimary,
+          tertiary: AppColors.background,
+          onTertiary: AppColors.textPrimary,
           error: Colors.red,
           onError: AppColors.textPrimary,
         ),
