@@ -55,7 +55,7 @@ class Header extends StatelessWidget {
 
         return MoveWindow(
           child: Container(
-            color: colorScheme.background,
+            color: colorScheme.tertiary,
             height: kToolbarHeight,
             padding: const EdgeInsets.only(
               left: 20.0,
