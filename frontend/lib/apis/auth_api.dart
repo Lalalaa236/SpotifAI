@@ -89,4 +89,49 @@ class AuthApi extends BaseApi {
       throw Exception('Login failed: $e');
     }
   }
+
+  Future<bool> signup(String email, String username, String password1, String password2) async {
+    try {
+      // Step 1: Fetch CSRF token and cookies from signup page
+      final response = await DioClient.instance.get('/v1/accounts/signup/');
+      final csrfData = DioClient.getCsrfTokenAndCookies(response);
+      final csrfToken = csrfData['csrfToken']!;
+      final cookies = csrfData['cookies']!;
+
+      // Step 2: Set CSRF token and cookies in headers for signup request
+      DioClient.instance.options.headers['X-CSRFToken'] = csrfToken;
+      DioClient.instance.options.headers['Cookie'] = cookies;
+
+      // Step 3: Prepare the signup data
+      final data = {
+        'email': email,
+        'username': username,
+        'password1': password1,
+        'password2': password2,
+      };
+
+      // Step 4: Send the signup request
+      final signupResponse = await DioClient.instance.post(
+        '/v1/accounts/signup/',
+        data: data,
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+          validateStatus: (status) => status! < 500,
+        ),
+      );
+
+      // Step 5: Handle the response
+      if (signupResponse.statusCode == 201 || signupResponse.statusCode == 200) {
+        final prefs = await SharedPreferences.getInstance();
+        final updatedCsrfData = DioClient.getCsrfTokenAndCookies(signupResponse);
+        await prefs.setString('cookies', updatedCsrfData['cookies']!);
+        await prefs.setString('csrf_token', updatedCsrfData['csrfToken']!);
+        return true;
+      } else {
+        throw Exception(signupResponse.data['form']['errors']?.join('\n') ?? 'Signup failed');
+      }
+    } catch (e) {
+      throw Exception('Signup failed: $e');
+    }
+  }
 }
