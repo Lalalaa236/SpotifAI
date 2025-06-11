@@ -327,16 +327,21 @@ class _PlaylistDetailState extends State<PlaylistDetail>
                                   final playlistId =
                                       widget.playlist['id'] as int;
                                   final onNavigate = widget.onNavigate;
+                                  final appCubit =
+                                      context
+                                          .read<
+                                            AppCubit
+                                          >(); // Capture cubit before await
                                   if (!mounted) return;
                                   try {
                                     await PlaylistSongApi.deletePlaylist(
                                       playlistId,
                                     );
                                     if (!mounted) return;
-                                    context.read<AppCubit>().removePlaylist(
+                                    appCubit.removePlaylist(
                                       playlistId,
-                                    );
-                                    context.read<AppCubit>().setIsHome(true);
+                                    ); // Use captured cubit
+                                    appCubit.setIsHome(true);
                                     onNavigate(Home(onNavigate: onNavigate));
                                   } catch (e) {
                                     if (mounted) {

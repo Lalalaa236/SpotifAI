@@ -172,8 +172,9 @@ class _SearchResultState extends State<SearchResult> {
                                                                 BoxShadow(
                                                                   color: Colors
                                                                       .black
-                                                                      .withOpacity(
-                                                                        0.35,
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.35,
                                                                       ),
                                                                   blurRadius:
                                                                       16,
@@ -248,8 +249,9 @@ class _SearchResultState extends State<SearchResult> {
                                                                 BoxShadow(
                                                                   color: Colors
                                                                       .black
-                                                                      .withOpacity(
-                                                                        0.35,
+                                                                      .withValues(
+                                                                        alpha:
+                                                                            0.35,
                                                                       ),
                                                                   blurRadius:
                                                                       16,
@@ -363,7 +365,7 @@ class _SearchResultState extends State<SearchResult> {
                               const SizedBox(width: 24),
                               // Songs list, same height as Top result
                               Expanded(
-                                child: Container(
+                                child: SizedBox(
                                   height: 325,
                                   child:
                                       _displaySongs.isEmpty

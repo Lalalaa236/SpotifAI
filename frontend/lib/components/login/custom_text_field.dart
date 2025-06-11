@@ -7,9 +7,12 @@ class CustomTextField extends StatelessWidget {
   final bool obscureText;
   final TextEditingController? controller;
   final double width;
+  final Function(String)? onSubmitted;
   final EdgeInsetsGeometry? padding;
   final Function(String)? onChanged;
   final FocusNode? focusNode;
+  final String? errorText;
+  final TextInputAction textInputAction;
 
   const CustomTextField({
     super.key,
@@ -20,7 +23,10 @@ class CustomTextField extends StatelessWidget {
     this.width = AppConstants.textFieldWidth,
     this.padding,
     this.onChanged,
+    this.onSubmitted,
     this.focusNode,
+    this.errorText,
+    this.textInputAction = TextInputAction.next,
   });
 
   @override
@@ -45,6 +51,8 @@ class CustomTextField extends StatelessWidget {
               controller: controller,
               obscureText: obscureText,
               onChanged: onChanged,
+              onSubmitted: onSubmitted,
+              textInputAction: textInputAction,
               focusNode: focusNode,
               decoration: InputDecoration(
                 filled: true,
@@ -55,6 +63,8 @@ class CustomTextField extends StatelessWidget {
                 ),
                 hintText: hintText,
                 hintStyle: const TextStyle(color: Colors.white70),
+                errorText: errorText,
+                errorMaxLines: 3,
               ),
               style: const TextStyle(color: Colors.white),
             ),

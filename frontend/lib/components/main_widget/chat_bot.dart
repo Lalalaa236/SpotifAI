@@ -356,8 +356,8 @@ class _ChatBotWidgetState extends State<ChatBot>
                                                             style: TextStyle(
                                                               color: colorScheme
                                                                   .onSurface
-                                                                  .withOpacity(
-                                                                    0.7,
+                                                                  .withValues(
+                                                                    alpha: 0.7,
                                                                   ),
                                                               fontSize: 13,
                                                             ),

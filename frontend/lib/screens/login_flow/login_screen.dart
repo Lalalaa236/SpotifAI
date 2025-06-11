@@ -45,7 +45,6 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       _showErrorSnackBar('Error: ${e.toString()}');
     } finally {
-      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
@@ -74,6 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final success = await AuthApi.login(email, password);
+      if (!mounted) return;
       if (success) {
         context.go('/home');
       } else {
@@ -82,7 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       _showErrorSnackBar('Error: ${e.toString()}');
     } finally {
-      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
